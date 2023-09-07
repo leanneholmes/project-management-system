@@ -1,0 +1,342 @@
+@import url("https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&display=swap");
+
+.vsc-initialized {
+  background-image: url("#{resource['img/background_pattern.png']}");
+  margin: 0 !important;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+.navbar {
+  background-color: #032e59;
+  font-family: Raleway, Verdana, Geneva, Tahoma, sans-serif;
+  font-weight: 700;
+  font-size: 15pt;
+}
+
+/* Page structure stying */
+.pageHeader {
+  font-family: Raleway, Verdana, Geneva, Tahoma, sans-serif;
+  font-size: 15pt;
+  font-weight: 500;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.containerHeader {
+  font-family: Raleway, Verdana, Geneva, Tahoma, sans-serif;
+  font-size: 25pt;
+  font-weight: 500;
+  margin-bottom: 20px;
+  text-align: center;
+  margin: 4rem 10rem 4rem 10rem;
+}
+
+#timesheetRowsForm .ui-datatable-header {
+  text-align: center;
+  font-weight: 700;
+}
+
+.contentContainer,
+.landingPageContainer,
+.inaccessiblePageContentContainer {
+  font-family: Raleway, Verdana, Geneva, Tahoma, sans-serif;
+  font-size: 13pt;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+  overflow-y: scroll;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.landingPageContainer,
+.inaccessiblePageContentContainer {
+  padding-top: 30vh !important;
+}
+
+.subcontainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background-color: #bfbfbf;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 900px;
+  box-shadow: 2px 2px 6px rgba(43, 43, 43, 0.6);
+  color: white;
+  padding: 10px;
+  padding-top: 20px;
+  padding-bottom: 5px;
+}
+
+.pageMessage {
+  font-size: 13.2pt;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.subcontainer table {
+  width: 100%;
+}
+
+.gridColumnHeader {
+  font-size: 12pt;
+  font-weight: 500;
+}
+
+/* Form, button and input-related styling */
+.form {
+  width: 100%;
+}
+
+.inputFieldGroup,
+.inputFieldGroupWithBorder {
+  display: flex;
+  margin-bottom: 25px;
+}
+
+.inputField {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.uiButton,
+.pfUIButton {
+  font-family: Raleway, Verdana, Geneva, Tahoma, sans-serif !important;
+  padding: 10px !important;
+  margin-top: 10px !important;
+  margin-bottom: 10px !important;
+  width: 95% !important;
+  border: none !important;
+  color: white !important;
+  background-color: #032e59 !important;
+  border-radius: 5px !important;
+  font-weight: 600 !important;
+  font-size: 14pt !important;
+  min-height: 50px !important;
+  transition: 0.2s !important;
+  box-shadow: 2px 2px 4px rgba(43, 43, 43, 0.6) !important;
+}
+
+.pfUIButton:disabled {
+  background-color: #bfbfbf !important;
+}
+
+.uiButtonSpecial {
+  max-width: 836px !important;
+}
+
+.uiButton:hover,
+.uiButtonSpecial:hover,
+.pfUIButton:hover {
+  cursor: pointer;
+  background-color: #e58004 !important;
+}
+
+.pfUIButton .ui-button-text {
+  display: inline !important;
+}
+
+/* UI-menu and -dialog-related styling */
+.ui-menu {
+  background: #f2f2f2 !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.ui-menu .ui-button, .reportForm .ui-button, .table-ui-button {
+  transition: 0.2s;
+  background: #032e59 !important;
+  border: none !important;
+  width: 100px !important;
+  text-align: center !important;
+}
+
+.ui-button:disabled, .table-ui-button:disabled {
+  border-color: #bfbfbf !important;
+  background-color: #bfbfbf !important;
+}
+
+.ui-menu .ui-button:last-of-type {
+  margin-left: 10px !important;
+}
+
+.ui-menu .ui-button:hover, .reportForm .ui-button:hover, .table-ui-button:hover {
+  background: #e58004 !important;
+}
+
+.ui-dialog-titlebar,
+.ui-dialog-content,
+.ui-dialog-footer {
+  background-image: url("#{resource['img/background_pattern_modal.png']}") !important;
+}
+
+.ui-dialog-titlebar {
+  font-family: Raleway, Verdana, Geneva, Tahoma, sans-serif !important;
+  font-size: 15pt !important;
+  font-weight: 500 !important;
+  text-align: center !important;
+}
+
+.ui-dialog-title {
+  position: relative !important;
+  left: 15px !important;
+  top: 5px !important;
+}
+
+.ui-dialog-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center;
+  /* height: fit-content !important; */
+  overflow: scroll !important;
+}
+
+.ui-dialog-content form {
+  width: 100%;
+}
+
+.ui-inplace-display {
+  margin: 0px;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: var(--surface-a);
+  font-family: var(--font-family);
+  font-weight: normal;
+  font-size: 13pt;
+  color: var(--text-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Project card-related styling */
+.card {
+  display: block;
+  color: black;
+  text-decoration: none;
+  padding: 2rem;
+}
+
+.project {
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  border-radius: 5px;
+  margin: 1rem;
+  background-color: white;
+  transition: 0.2s;
+}
+
+.card div {
+  padding: 0.5rem;
+}
+
+.center {
+  text-align: center;
+}
+
+.vert {
+  position: relative;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+.hovered:hover {
+  cursor: pointer;
+}
+
+.project:hover {
+  background-color: #d9d9d9;
+}
+
+/* Message-related styling */
+.globalMessageSuccesses {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #01579b;
+  text-align: center;
+}
+
+.globalMessageErrors,
+.error {
+  font-size: 1rem;
+  font-weight: 500;
+  color: red;
+  text-align: center;
+}
+
+.ui-inputfield {
+  width: 300px;
+}
+
+.ui-inputnumber-table input {
+  width: 100% !important;
+}
+
+.tableOutputText {
+  overflow-wrap: break-word;
+}
+
+.ui-inputfield.ui-state-error, .ui-selectonemenu.ui-state-error {
+  border-width: 2px !important;
+}
+
+.labelWrapper {
+  margin-bottom: 0.3rem;
+  display: flex;
+  width: 300px;
+}
+
+.labelWrapper label {
+  font-size: 0.9rem !important;
+  color: #495057 !important;
+}
+
+small {
+  margin-top: 0.3rem;
+  display: flex;
+  width: 300px;
+  font-size: 0.7rem !important;
+  color: #495057 !important;
+}
+
+/* Not sure if anything below is needed */
+.ui-float-label input {
+  /*font-family: Raleway, Verdana, Geneva, Tahoma, sans-serif !important;*/
+  width: 300px !important;
+}
+
+.ui-input-icon-right>i {
+  top: 40% !important;
+}
+
+.standardInputContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.buttonLink {
+  padding: 0.75rem;
+  background-color: #032e59;
+  color: white;
+  border-radius: 5px;
+  text-decoration: none;
+}
+
+.buttonLink:hover {
+  background-color: #e58004;
+}

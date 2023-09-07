@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:p="http://primefaces.org/ui"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+>
+  <head>
+    <title>IGNORED</title>
+  </head>
+  <body>
+    <ui:composition>
+      <h:panelGroup
+        class="inaccessiblePageContentContainer"
+        rendered="#{!authController.employeeIsLoggedIn()}"
+      >
+        <div class="inaccessiblePageError">
+          <div class="pageHeader">
+            <h:outputText
+              value="#{msgs.inaccessiblePageHeaderLoggedIn}"
+              escape="false"
+            />
+          </div>
+        </div>
+      </h:panelGroup>
+      <h:panelGroup
+        layout="block"
+        class="contentContainer"
+        rendered="#{authController.employeeIsLoggedIn()}"
+      >
+        <div class="pageHeader">Weekly Report</div>
+
+        <h:form
+          class="reportForm"
+          style="
+            display: flex;
+            align-content: center;
+            align-items: center;
+            margin-top: 30px;
+          "
+        >
+          <p:outputLabel
+            value="Project"
+            for="projectMenu"
+            style="margin-right: 4px"
+          />
+          <p:selectOneMenu
+            id="projectMenu"
+            value="#{wrptController.currentProject}"
+            converter="#{projectConverter}"
+            style="min-width: 200px"
+          >
+            <f:selectItem itemLabel="--" itemValue="#{null}" />
+            <f:selectItems
+              value="#{wrptController.getProjectsOf(authController.currentEmployee)}"
+              var="proj"
+              itemLabel="#{proj.projectName}"
+              itemValue="#{proj}"
+            />
+            <p:ajax event="change" update="workPackageMenu" />
+          </p:selectOneMenu>
+
+          <p:outputLabel
+            value="Work Package"
+            for="workPackageMenu"
+            style="margin-right: 4px; margin-left: 12px"
+          />
+          <p:selectOneMenu
+            id="workPackageMenu"
+            value="#{wrptController.currentWorkPackage}"
+            converter="#{workPackageConverter}"
+            style="min-width: 200px"
+          >
+            <f:selectItem itemLabel="--" itemValue="#{null}" />
+            <f:selectItems
+              value="#{wrptController.getWorkPackagesOfCurrentProject()}"
+              var="wp"
+              itemLabel="#{wp.name} / #{wp.id}"
+              itemValue="#{wp}"
+            />
+            <p:ajax event="change" update="@form" />
+          </p:selectOneMenu>
+          <p:commandButton
+            value="Generate"
+            action="#{wrptController.generateWeeklyReport()}"
+            update="reportPanel"
+            disabled="#{wrptController.generateButtonDisabled()}"
+            style="margin-left: 12px"
+          />
+        </h:form>
+
+        <h:panelGroup id="reportPanel">
+          <p:panelGrid>
+            <p:row>
+              <p:column>
+                <p:outputLabel for="currentProject" value="Project" />
+              </p:column>
+              <p:column>
+                <h:outputText
+                  id="currentProject"
+                  value="#{wrptController.currentProject != null ? wrptController.currentProject.projectName : 'none'}"
+                />
+              </p:column>
+            </p:row>
+            <p:row>
+              <p:column>
+                <p:outputLabel for="currentWorkPackage" value="Work Package" />
+              </p:column>
+              <p:column>
+                <h:outputText
+                  id="currentWorkPackage"
+                  value="#{wrptController.currentWorkPackage != null ? wrptController.currentWorkPackage.name : 'none'}"
+                />
+              </p:column>
+            </p:row>
+          </p:panelGrid>
+
+          <p:dataTable value="#{wrptController.timesheetRowList}" var="tsr">
+            <p:headerRow
+              field="timesheet.employee.empName"
+              expandable="true"
+              expanded="false"
+            >
+              <p:column headerText="Employee Number">
+                <h:outputText value="#{tsr.timesheet.employee.empNumber}" />
+              </p:column>
+              <p:column headerText="Employee Name">
+                <h:outputText value="#{tsr.timesheet.employee.empName}" />
+              </p:column>
+              <p:column headerText="Employee Type">
+                <h:outputText value="#{tsr.timesheet.employee.empType}" />
+              </p:column>
+              <p:column headerText="Pay Grade">
+                <h:outputText value="#{tsr.timesheet.employee.payGrade}" />
+              </p:column>
+              <p:column headerText="Week End Date">
+                <h:outputText value="" />
+              </p:column>
+              <p:column>
+                <h:outputText
+                  value="#{wrptController.getTotalHoursOf(tsr.timesheet.employee)}"
+                />
+              </p:column>
+            </p:headerRow>
+
+            <p:column headerText="Employee Number"> </p:column>
+            <p:column headerText="Employee Name"> </p:column>
+            <p:column headerText="Employee Type"> </p:column>
+            <p:column headerText="Pay Grade"> </p:column>
+            <p:column headerText="Week End Date">
+              <h:outputText value="#{tsr.timesheet.endDate}" />
+            </p:column>
+            <p:column headerText="Hour">
+              <h:outputText value="#{tsr.totalHours}" />
+            </p:column>
+
+            <p:columnGroup type="footer">
+              <p:row>
+                <p:column colspan="5">
+                  <f:facet name="footer">
+                    <p:outputLabel for="total" value="Total: " />
+                  </f:facet>
+                </p:column>
+                <p:column>
+                  <f:facet name="footer">
+                    <h:outputText
+                      id="total"
+                      value="#{wrptController.getTotalHours()}"
+                    />
+                  </f:facet>
+                </p:column>
+              </p:row>
+            </p:columnGroup>
+          </p:dataTable>
+        </h:panelGroup>
+      </h:panelGroup>
+    </ui:composition>
+  </body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:p="http://primefaces.org/ui"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+>
+  <head>
+    <title>IGNORED</title>
+  </head>
+  <body>
+    <ui:composition>
+      <h:panelGroup
+        class="inaccessiblePageContentContainer"
+        rendered="#{!authController.employeeIsLoggedIn() or
+                authController.currentEmployee.approvees.size() le 0}"
+      >
+        <div class="inaccessiblePageError">
+          <div class="pageHeader">
+            <h:outputText
+              value="#{msgs.inaccessiblePageHeaderLoggedIn}"
+              escape="false"
+            />
+          </div>
+        </div>
+      </h:panelGroup>
+      <h:panelGroup
+        layout="block"
+        class="contentContainer"
+        rendered="#{authController.employeeIsLoggedIn() and
+                      authController.currentEmployee.approvees.size() gt 0}"
+      >
+        <div class="pageHeader">#{msgs.employeeTimesheetsApproverPageMsg}</div>
+
+        <ui:fragment
+          rendered="#{tsaController.getTimesheetsToApprove(authController.currentEmployee).isEmpty()}"
+        >
+          <div class="errorMessage">
+            <h:outputText value="#{msgs.timesheetNoApprovees}" />
+          </div>
+        </ui:fragment>
+
+        <ui:fragment
+          rendered="#{not tsaController.getTimesheetsToApprove(authController.currentEmployee).isEmpty()}"
+        >
+          <p:dataTable
+            var="ts"
+            value="#{tsaController.getTimesheetsToApprove(authController.currentEmployee)}"
+          >
+            <p:column headerText="TimesheetId">
+              <h:outputText value="#{ts.id}" />
+            </p:column>
+            <p:column headerText="EndDate">
+              <h:outputText value="#{ts.endDate}" />
+            </p:column>
+            <p:column headerText="EmployeeName">
+              <h:outputText value="#{ts.empName}" />
+            </p:column>
+            <p:column headerText="SignedDate">
+              <h:outputText value="#{ts.signedDate}" />
+            </p:column>
+            <p:column headerText="ApproverName">
+              <h:outputText value="#{ts.approverName}" />
+            </p:column>
+            <p:column headerText="ResponseDate">
+              <h:outputText value="#{ts.responseDate}" />
+            </p:column>
+            <p:column headerText="Status">
+              <h:outputText value="#{ts.status}" />
+            </p:column>
+            <p:column headerText="Status">
+              <h:form>
+                <p:commandLink
+                  value="Details"
+                  action="#{tsadController.selectTimesheetAndNavigateToDetail(ts)}"
+                  ajax="false"
+                />
+              </h:form>
+            </p:column>
+          </p:dataTable>
+        </ui:fragment>
+      </h:panelGroup>
+    </ui:composition>
+  </body>
+</html>

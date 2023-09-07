@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:p="http://primefaces.org/ui"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+>
+  <head>
+    <title>IGNORED</title>
+  </head>
+  <body>
+    <ui:composition>
+      <h:panelGroup
+        class="inaccessiblePageContentContainer"
+        rendered="#{!authController.employeeIsLoggedIn()}"
+      >
+        <div class="inaccessiblePageError">
+          <div class="pageHeader">
+            <h:outputText
+              value="#{msgs.inaccessiblePageHeaderLoggedIn}"
+              escape="false"
+            />
+          </div>
+        </div>
+      </h:panelGroup>
+      <h:panelGroup
+        id="timesheetPanel"
+        layout="block"
+        class="contentContainer"
+        rendered="#{authController.employeeIsLoggedIn()}"
+      >
+        <div class="pageHeader">#{msgs.employeeTimesheetsPageMsg}</div>
+        <h:form id="timesheetForm">
+          <p:dataTable
+            id="timesheetTable"
+            var="ts"
+            value="#{tsController.getTimesheetsByEmpNumber(authController.currentEmployee.empNumber)}"
+          >
+            <p:column headerText="End Date">
+              <h:outputText value="#{ts.endDate}" />
+            </p:column>
+            <p:column headerText="Total Hours">
+              <h:outputText value="#{tsController.getTotalHours(ts)}" />
+            </p:column>
+            <p:column headerText="Status">
+              <h:outputText value="#{ts.status}" />
+            </p:column>
+            <p:column headerText="Signed Date">
+              <h:outputText value="#{ts.signedDate}" />
+            </p:column>
+            <p:column headerText="Approver">
+              <h:outputText value="#{ts.approverName}" />
+            </p:column>
+            <p:column headerText="Response Date">
+              <h:outputText value="#{ts.responseDate}" />
+            </p:column>
+            <p:column style="width: 3rem">
+              <p:commandButton
+                action="#{tsdController.selectTimesheetAndNavigateToDetails(ts)}"
+                title="#{msgs.timesheetDetailsTitle}"
+                styleClass="rounded-button ui-button-info"
+                icon="pi pi-search"
+              />
+            </p:column>
+            <p:column style="width: 3rem">
+              <p:commandButton
+                action="#{tsController.delete(ts)}"
+                title="#{msgs.deleteTimesheetTitle}"
+                styleClass="rounded-button ui-button-danger"
+                ajax="false"
+                update="@form"
+                rendered="#{tsController.renderIfDraftOrRejected(ts)}"
+                icon="pi pi-trash"
+              />
+            </p:column>
+            <p:columnGroup type="footer">
+              <p:row>
+                <p:column colspan="8">
+                  <f:facet name="footer">
+                    <h:outputText
+                      value="Total: #{tsController.getTimesheetsByEmpNumber(authController.currentEmployee.empNumber).size()}"
+                    />
+                  </f:facet>
+                </p:column>
+                <ui:remove>
+                  <p:column colspan="2" style="text-align: center">
+                    <f:facet name="footer">
+                      <p:commandButton
+                        class="table-ui-button"
+                        value="Add"
+                        oncomplete="PF('addTimesheetDialog').show()"
+                      >
+                        <p:ajax
+                          update="timesheetDialogForm"
+                          resetValues="true"
+                        />
+                      </p:commandButton>
+                    </f:facet>
+                  </p:column>
+                </ui:remove>
+              </p:row>
+            </p:columnGroup>
+          </p:dataTable>
+        </h:form>
+
+        <p:commandButton
+          styleClass="pfUIButton"
+          value="Add Timesheet"
+          icon="pi pi-external-link"
+          oncomplete="PF('addTimesheetDialog').show()"
+          style="margin-top: 30px !important"
+        >
+          <p:ajax update="timesheetDialogForm" resetValues="true" />
+        </p:commandButton>
+        <h:commandButton
+          value="#{msgs.backButtonText}"
+          styleClass="uiButton"
+          action="index?faces-redirect=true"
+          immediate="true"
+        />
+
+        <!-- Timesheet add dialog -->
+        <p:dialog
+          id="timesheetDialogForm"
+          header="Add Timesheet"
+          widgetVar="addTimesheetDialog"
+          minHeight="40"
+          width="600"
+          showEffect="fade"
+          modal="true"
+          fitViewport="true"
+        >
+          <h:form>
+            <div class="standardInputContainer">
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel for="@next" value="End Date" />
+                </div>
+                <p:datePicker
+                  id="endDate"
+                  value="#{tsController.endDate}"
+                  disabledDays="#{tsController.getDisabledDays()}"
+                  disabledDates="#{tsController.getDisabledDates(authController.currentEmployee)}"
+                  validatorMessage="#{msgs.invalidDateErrorMsg}"
+                  required="true"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                  readonlyInput="true"
+                />
+              </h:panelGroup>
+              <h:message for="endDate" errorClass="error" />
+            </div>
+            <p:commandButton
+              styleClass="pfUIButton"
+              value="Add"
+              action="#{tsController.addTimesheet(authController.currentEmployee)}"
+              oncomplete="if (args &amp;&amp; !args.validationFailed) PF('addTimesheetDialog').hide()"
+              update="timesheetForm:timesheetTable"
+            >
+              <f:ajax execute="@form" render="@form" />
+            </p:commandButton>
+          </h:form>
+        </p:dialog>
+      </h:panelGroup>
+    </ui:composition>
+  </body>
+</html>

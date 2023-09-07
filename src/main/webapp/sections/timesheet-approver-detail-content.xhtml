@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:p="http://primefaces.org/ui"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+>
+  <head>
+    <title>IGNORED</title>
+  </head>
+  <body>
+    <ui:composition>
+      <h:panelGroup
+        class="inaccessiblePageContentContainer"
+        rendered="#{!authController.employeeIsLoggedIn() or
+                tsadController.selectedTimesheet == null or
+                authController.currentEmployee.approvees.size() le 0}"
+      >
+        <div class="inaccessiblePageError">
+          <div class="pageHeader">
+            <h:outputText
+              value="#{msgs.inaccessiblePageHeaderLoggedIn}"
+              escape="false"
+            />
+          </div>
+        </div>
+      </h:panelGroup>
+      <h:panelGroup
+        id="timesheetApproverPanel"
+        layout="block"
+        class="contentContainer"
+        rendered="#{authController.employeeIsLoggedIn() and
+                      tsadController.selectedTimesheet != null and
+                      authController.currentEmployee.approvees.size() gt 0}"
+      >
+        <div class="pageHeader">
+          #{msgs.employeeTimesheetsApproverDetailPageMsg}
+        </div>
+
+        <h:form style="width: 90%">
+          <div style="display: flex; justify-content: end">
+            <p:commandButton
+              value="Approve"
+              styleClass="ui-button-success"
+              action="#{tsadController.approve(authController.currentEmployee)}"
+              update="timesheetApproverPanel"
+              rendered="#{tsadController.renderIfPending()}"
+            />
+            <p:commandButton
+              value="Reject"
+              styleClass="ui-button-danger"
+              action="#{tsadController.reject(authController.currentEmployee)}"
+              update="timesheetApproverPanel"
+              rendered="#{tsadController.renderIfPending()}"
+            />
+          </div>
+
+          <h:messages style="color: red" />
+
+          <p:panelGrid style="width: 100%">
+            <f:facet name="header">
+              <p:row>
+                <p:column colspan="3">Timesheet Info</p:column>
+              </p:row>
+            </f:facet>
+
+            <p:row>
+              <p:column styleClass="ui-widget-header">
+                <p:outputLabel for="timesheetId" value="TimesheetId: " />
+              </p:column>
+              <p:column styleClass="ui-widget-header">
+                <p:outputLabel for="endDate" value="EndDate: " />
+              </p:column>
+              <p:column styleClass="ui-widget-header">
+                <p:outputLabel for="status" value="Status: " />
+              </p:column>
+            </p:row>
+
+            <p:row>
+              <p:column>
+                <h:outputText
+                  id="timesheetId"
+                  value="#{tsadController.selectedTimesheet.id}"
+                />
+              </p:column>
+              <p:column>
+                <h:outputText
+                  id="endDate"
+                  value="#{tsadController.selectedTimesheet.endDate}"
+                />
+              </p:column>
+              <p:column>
+                <h:outputText
+                  id="status"
+                  value="#{tsadController.selectedTimesheet.status}"
+                />
+              </p:column>
+            </p:row>
+
+            <p:row>
+              <p:column styleClass="ui-widget-header" colspan="3">
+                <p:outputLabel for="comments" value="Comments: " />
+              </p:column>
+            </p:row>
+            <p:row>
+              <p:column colspan="3">
+                <p:inputTextarea
+                  id="comments"
+                  value="#{tsadController.selectedTimesheet.comments}"
+                  rendered="#{tsadController.renderIfPending()}"
+                  style="width: 100%"
+                />
+                <p:inputTextarea
+                  value="#{tsadController.selectedTimesheet.comments}"
+                  readonly="true"
+                  rendered="#{!tsadController.renderIfPending()}"
+                  style="width: 100%"
+                />
+              </p:column>
+            </p:row>
+
+            <p:row>
+              <p:column styleClass="ui-widget-header">
+                <p:outputLabel for="employeeName" value="EmployeeName: " />
+              </p:column>
+              <p:column styleClass="ui-widget-header">
+                <p:outputLabel for="signedDate" value="SignedDate: " />
+              </p:column>
+              <p:column styleClass="ui-widget-header">
+                <p:outputLabel for="empSignature" value="EmployeeSignature: " />
+              </p:column>
+            </p:row>
+            <p:row>
+              <p:column>
+                <h:outputText
+                  id="employeeName"
+                  value="#{tsadController.selectedTimesheet.empName}"
+                />
+              </p:column>
+              <p:column>
+                <h:outputText
+                  id="signedDate"
+                  value="#{tsadController.selectedTimesheet.signedDate}"
+                />
+              </p:column>
+              <p:column>
+                <p:signature
+                  id="empSignature"
+                  style="width: 300px; height: 100px"
+                  readonly="true"
+                  value="#{tsadController.selectedTimesheet.empSignature}"
+                />
+              </p:column>
+            </p:row>
+
+            <p:row>
+              <p:column styleClass="ui-widget-header">
+                <p:outputLabel for="approverName" value="ApproverName: " />
+              </p:column>
+              <p:column styleClass="ui-widget-header">
+                <p:outputLabel for="responseDate" value="ResponseDate: " />
+              </p:column>
+              <p:column styleClass="ui-widget-header">
+                <p:outputLabel for="appSignature" value="ApproverSignature: " />
+              </p:column>
+            </p:row>
+            <p:row>
+              <p:column>
+                <h:outputText
+                  id="approverName"
+                  value="#{tsadController.selectedTimesheet.approverName}"
+                />
+              </p:column>
+              <p:column>
+                <h:outputText
+                  id="responseDate"
+                  value="#{tsadController.selectedTimesheet.responseDate}"
+                />
+              </p:column>
+              <p:column style="display: flex">
+                <p:signature
+                  id="appSignature"
+                  style="width: 300px; height: 100px"
+                  widgetVar="sig"
+                  value="#{tsadController.selectedTimesheet.approverSignature}"
+                  rendered="#{tsadController.renderIfPending()}"
+                  required="true"
+                  requiredMessage="ApproverSignature is required"
+                />
+                <p:signature
+                  style="width: 300px; height: 100px"
+                  readonly="true"
+                  value="#{tsadController.selectedTimesheet.approverSignature}"
+                  rendered="#{tsadController.renderIfApprovedOrRejected()}"
+                />
+                <div>
+                  <p:commandButton
+                    value="Clear"
+                    onclick="PF('sig').clear()"
+                    rendered="#{tsadController.renderIfPending()}"
+                  />
+                </div>
+              </p:column>
+            </p:row>
+          </p:panelGrid>
+        </h:form>
+
+        <p:dataTable
+          value="#{tsadController.getTimesheetRows()}"
+          var="tsr"
+          style="width: 90%"
+        >
+          <f:facet name="header">
+            <h:outputText
+              styleClass="ui-widget-header"
+              value="Timesheet Rows"
+            />
+          </f:facet>
+          <p:column headerText="Project">
+            <h:outputText value="#{tsr.project.projectName}" />
+          </p:column>
+          <p:column headerText="WorkPackage">
+            <h:outputText
+              value="#{tsr.workPackage.name} / #{tsr.workPackage.id}"
+            />
+          </p:column>
+          <p:column headerText="Total">
+            <h:outputText
+              value="#{(tsr.satHours + tsr.sunHours + tsr.monHours
+                    + tsr.tueHours + tsr.wedHours + tsr.thuHours + tsr.friHours)}"
+            />
+          </p:column>
+          <p:column headerText="Sat">
+            <h:outputText value="#{tsr.satHours}" />
+          </p:column>
+          <p:column headerText="Sun">
+            <h:outputText value="#{tsr.sunHours}" />
+          </p:column>
+          <p:column headerText="Mon">
+            <h:outputText value="#{tsr.monHours}" />
+          </p:column>
+          <p:column headerText="Tue">
+            <h:outputText value="#{tsr.tueHours}" />
+          </p:column>
+          <p:column headerText="Wed">
+            <h:outputText value="#{tsr.wedHours}" />
+          </p:column>
+          <p:column headerText="Thu">
+            <h:outputText value="#{tsr.thuHours}" />
+          </p:column>
+          <p:column headerText="Fri">
+            <h:outputText value="#{tsr.friHours}" />
+          </p:column>
+          <p:column headerText="Notes">
+            <h:outputText value="#{tsr.notes}" />
+          </p:column>
+          <p:columnGroup type="footer">
+            <p:row>
+              <p:column colspan="2">
+                <f:facet name="footer">
+                  <h:outputText
+                    value="Total: #{tsadController.selectedTimesheet.numRows}"
+                  />
+                </f:facet>
+              </p:column>
+              <p:column>
+                <f:facet name="footer">
+                  <h:outputText value="#{tsadController.getSum()}" />
+                </f:facet>
+              </p:column>
+              <p:column>
+                <f:facet name="footer">
+                  <h:outputText value="#{tsadController.getSatSum()}" />
+                </f:facet>
+              </p:column>
+              <p:column>
+                <f:facet name="footer">
+                  <h:outputText value="#{tsadController.getSunSum()}" />
+                </f:facet>
+              </p:column>
+              <p:column>
+                <f:facet name="footer">
+                  <h:outputText value="#{tsadController.getMonSum()}" />
+                </f:facet>
+              </p:column>
+              <p:column>
+                <f:facet name="footer">
+                  <h:outputText value="#{tsadController.getTueSum()}" />
+                </f:facet>
+              </p:column>
+              <p:column>
+                <f:facet name="footer">
+                  <h:outputText value="#{tsadController.getWedSum()}" />
+                </f:facet>
+              </p:column>
+              <p:column>
+                <f:facet name="footer">
+                  <h:outputText value="#{tsadController.getThuSum()}" />
+                </f:facet>
+              </p:column>
+              <p:column colspan="2">
+                <f:facet name="footer">
+                  <h:outputText value="#{tsadController.getFriSum()}" />
+                </f:facet>
+              </p:column>
+            </p:row>
+          </p:columnGroup>
+        </p:dataTable>
+      </h:panelGroup>
+    </ui:composition>
+  </body>
+</html>

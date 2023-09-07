@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:p="http://primefaces.org/ui"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+>
+  <head>
+    <title>IGNORED</title>
+  </head>
+
+  <body>
+    <ui:composition>
+      <ui:remove>
+        <f:metadata>
+          <f:event
+            type="preRenderView"
+            listener="#{workPackageController.onViewDetailsPageLoad()}"
+          />
+        </f:metadata>
+      </ui:remove>
+      <h:panelGroup
+        class="inaccessiblePageContentContainer"
+        rendered="#{!authController.employeeIsLoggedIn() ? true : projController.currentProject == null ? true : 
+          (!projController.currentProject.getAssignedEmployees().contains(authController.currentEmployee) and
+            !projController.currentProject.getProjectManager().equals(authController.currentEmployee))}"
+      >
+        <div class="inaccessiblePageError">
+          <div class="pageHeader">
+            <h:outputText
+              value="#{msgs.inaccessiblePageHeaderLoggedIn}"
+              escape="false"
+            />
+          </div>
+        </div>
+      </h:panelGroup>
+      <h:panelGroup
+        layout="block"
+        class="contentContainer"
+        rendered="#{authController.employeeIsLoggedIn() and projController.currentProject != null and 
+          (projController.currentProject.getAssignedEmployees().contains(authController.currentEmployee) or 
+            projController.currentProject.getProjectManager().equals(authController.currentEmployee)) ? true : false}"
+      >
+        <h:outputFormat
+          class="pageHeader"
+          value="#{workPackageController.currentWorkPackage.getResponsibleEngineer().equals(authController.currentEmployee) ? msgs.workPackageDetailsPageMsgRE : msgs.workPackageDetailsPageMsg}"
+        >
+          <f:param value="#{workPackageController.currentWorkPackage.id}" />
+          <f:convertNumber type="currency" currencySymbol="$" locale="en_US"
+        /></h:outputFormat>
+        <h:form style="width: 100%">
+          <div class="contentContainer" style="margin-top: 0 !important">
+            <p:growl
+              id="growl"
+              showDetail="true"
+              redisplay="false"
+              life="3000"
+            />
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 33% 33% 33%;
+                grid-template-areas: 'col1 col2 col3';
+                width: 100%;
+                margin-top: 20px;
+                margin-bottom: 20px;
+              "
+            >
+              <div
+                style="display: flex; flex-direction: column; grid-area: col1"
+              >
+                <div
+                  class="standardInputContainer"
+                  style="margin-bottom: 20px !important"
+                >
+                  <p class="gridColumnHeader">
+                    #{msgs.basicDetailsGridColHeader}
+                  </p>
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.workPackageNameLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="name"
+                      value="#{workPackageController.currentWorkPackage.name}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                      disabled="#{(workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) and workPackageController.editable) ? false
+                    : !workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) ? true: !workPackageController.editable}"
+                    >
+                      <p:ajax />
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('JS')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                  <h:message for="name" errorClass="error" />
+                </div>
+
+                <div
+                  class="standardInputContainer"
+                  style="margin-bottom: 20px !important"
+                >
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.startDateLabel}"
+                      />
+                    </div>
+                    <p:datePicker
+                      id="startDate"
+                      mindate="#{workPackageController.todaysDate}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                      validatorMessage="#{msgs.invalidDateErrorMsg}"
+                      value="#{workPackageController.currentWorkPackage.startDate}"
+                      readonlyInput="true"
+                      disabled="#{(workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) and workPackageController.editable) ? false
+                    : !workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) ? true: !workPackageController.editable}"
+                    >
+                      <p:ajax event="dateSelect" update="endDate" />
+                    </p:datePicker>
+                  </h:panelGroup>
+                  <h:message for="startDate" errorClass="error" />
+                </div>
+
+                <div
+                  class="standardInputContainer"
+                  style="margin-bottom: 20px !important"
+                >
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel for="@next" value="#{msgs.endDateLabel}" />
+                    </div>
+                    <p:datePicker
+                      id="endDate"
+                      mindate="#{workPackageController.currentWorkPackage.startDate}"
+                      value="#{workPackageController.currentWorkPackage.endDate}"
+                      readonlyInput="true"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                      validatorMessage="#{msgs.invalidDateErrorMsg}"
+                      disabled="#{(workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) and workPackageController.editable) ? false
+                    : !workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) ? true: !workPackageController.editable}"
+                    >
+                      <p:ajax />
+                    </p:datePicker>
+                  </h:panelGroup>
+                  <h:message for="endDate" errorClass="error" />
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.responsibleEngineerLabel}"
+                      />
+                    </div>
+                    <p:selectOneMenu
+                      id="responsibleEngineer"
+                      value="#{workPackageController.currentWorkPackage.responsibleEngineer}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                      style="width: 300px"
+                      disabled="#{(workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) and workPackageController.editable) ? false
+                    : !workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) ? true: !workPackageController.editable}"
+                    >
+                      <f:converter converterId="employeeConverter" />
+                      <f:selectItem
+                        itemLabel="--"
+                        noSelectItem="true"
+                        itemDisabled="true"
+                      />
+                      <f:selectItem
+                        itemValue="#{projController.currentProject.projectManager}"
+                        itemLabel="#{projController.currentProject.projectManager.username}"
+                      />
+                      <f:selectItems
+                        value="#{projController.currentProject.assignedEmployees}"
+                      />
+                      <p:ajax />
+                    </p:selectOneMenu>
+                  </h:panelGroup>
+                  <h:message for="responsibleEngineer" errorClass="error" />
+                </div>
+              </div>
+
+              <div
+                style="display: flex; flex-direction: column; grid-area: col2"
+              >
+                <div class="standardInputContainer">
+                  <p class="gridColumnHeader">
+                    #{msgs.engineerEstimateGridColHeader}
+                  </p>
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.jsBudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="js_ee"
+                      value="#{workPackageController.currentWorkPackage.engineerEstimate.JS}"
+                      disabled="true"
+                    >
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('JS')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.ssBudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="ss_ee"
+                      value="#{workPackageController.currentWorkPackage.engineerEstimate.SS}"
+                      disabled="true"
+                    >
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('SS')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.dsBudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="ds_ee"
+                      value="#{workPackageController.currentWorkPackage.engineerEstimate.DS}"
+                      disabled="true"
+                    >
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('DS')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.p1BudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="p1_ee"
+                      value="#{workPackageController.currentWorkPackage.engineerEstimate.p1}"
+                      disabled="true"
+                    >
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('P1')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.p2BudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="p2_ee"
+                      value="#{workPackageController.currentWorkPackage.engineerEstimate.p2}"
+                      disabled="true"
+                    >
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('P2')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.p3BudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="p3_ee"
+                      value="#{workPackageController.currentWorkPackage.engineerEstimate.p3}"
+                      disabled="true"
+                    >
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('P3')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.p4BudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="p4_ee"
+                      value="#{workPackageController.currentWorkPackage.engineerEstimate.p4}"
+                      disabled="true"
+                    >
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('P4')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.p5BudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="p5_ee"
+                      value="#{workPackageController.currentWorkPackage.engineerEstimate.p5}"
+                      disabled="true"
+                    >
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('P5')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.p6BudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="p6_ee"
+                      value="#{workPackageController.currentWorkPackage.engineerEstimate.p6}"
+                      disabled="true"
+                    >
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('P6')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                </div>
+              </div>
+              <div
+                style="display: flex; flex-direction: column; grid-area: col3"
+              >
+                <div class="standardInputContainer">
+                  <p class="gridColumnHeader">
+                    #{msgs.rollingEstimateGridColHeader}
+                  </p>
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.jsBudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="js_re"
+                      value="#{workPackageController.currentWorkPackage.rollingEstimate.JS}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                      validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      disabled="#{!workPackageController.currentWorkPackage.isLowestLevelWorkPackage() ? true 
+                        : workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) and workPackageController.editable ? false
+                          : !workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) ? true 
+                            : !workPackageController.editable}"
+                    >
+                      <f:validateDoubleRange
+                        minimum="0.00"
+                        maximum="1000000000.00"
+                      />
+                      <p:ajax />
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('JS')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                  <h:message for="js_re" errorClass="error" />
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.ssBudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="ss_re"
+                      value="#{workPackageController.currentWorkPackage.rollingEstimate.SS}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                      validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      disabled="#{!workPackageController.currentWorkPackage.isLowestLevelWorkPackage() ? true 
+                        : workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) and workPackageController.editable ? false
+                          : !workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) ? true 
+                            : !workPackageController.editable}"
+                    >
+                      <f:validateDoubleRange
+                        minimum="0.00"
+                        maximum="1000000000.00"
+                      />
+                      <p:ajax />
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('SS')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                  <h:message for="ss_re" errorClass="error" />
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.dsBudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="ds_re"
+                      value="#{workPackageController.currentWorkPackage.rollingEstimate.DS}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                      validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      disabled="#{(workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) and workPackageController.editable) ? false
+                        : !workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) ? true 
+                          : ((workPackageController.currentWorkPackage.isLowestLevelWorkPackage() and workPackageController.editable) and workPackageController.editable) ? false : !workPackageController.editable}"
+                    >
+                      <f:validateDoubleRange
+                        minimum="0.00"
+                        maximum="1000000000.00"
+                      />
+                      <p:ajax />
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('DS')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                  <h:message for="ds_re" errorClass="error" />
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.p1BudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="p1_re"
+                      value="#{workPackageController.currentWorkPackage.rollingEstimate.p1}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                      validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      disabled="#{!workPackageController.currentWorkPackage.isLowestLevelWorkPackage() ? true 
+                        : workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) and workPackageController.editable ? false
+                          : !workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) ? true 
+                            : !workPackageController.editable}"
+                    >
+                      <f:validateDoubleRange
+                        minimum="0.00"
+                        maximum="1000000000.00"
+                      />
+                      <p:ajax />
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('P1')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                  <h:message for="p1_re" errorClass="error" />
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.p2BudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="p2_re"
+                      value="#{workPackageController.currentWorkPackage.rollingEstimate.p2}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                      validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      disabled="#{!workPackageController.currentWorkPackage.isLowestLevelWorkPackage() ? true 
+                        : workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) and workPackageController.editable ? false
+                          : !workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) ? true 
+                            : !workPackageController.editable}"
+                    >
+                      <f:validateDoubleRange
+                        minimum="0.00"
+                        maximum="1000000000.00"
+                      />
+                      <p:ajax />
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('P2')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                  <h:message for="p2_re" errorClass="error" />
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.p3BudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="p3_re"
+                      value="#{workPackageController.currentWorkPackage.rollingEstimate.p3}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                      validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      disabled="#{!workPackageController.currentWorkPackage.isLowestLevelWorkPackage() ? true 
+                        : workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) and workPackageController.editable ? false
+                          : !workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) ? true 
+                            : !workPackageController.editable}"
+                    >
+                      <f:validateDoubleRange
+                        minimum="0.00"
+                        maximum="1000000000.00"
+                      />
+                      <p:ajax />
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('P3')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                  <h:message for="p3_re" errorClass="error" />
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.p4BudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="p4_re"
+                      value="#{workPackageController.currentWorkPackage.rollingEstimate.p4}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                      validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      disabled="#{!workPackageController.currentWorkPackage.isLowestLevelWorkPackage() ? true 
+                        : workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) and workPackageController.editable ? false
+                          : !workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) ? true 
+                            : !workPackageController.editable}"
+                    >
+                      <f:validateDoubleRange
+                        minimum="0.00"
+                        maximum="1000000000.00"
+                      />
+                      <p:ajax />
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('P4')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                  <h:message for="p4_re" errorClass="error" />
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.p5BudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="p5_re"
+                      value="#{workPackageController.currentWorkPackage.rollingEstimate.p5}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                      validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      disabled="#{!workPackageController.currentWorkPackage.isLowestLevelWorkPackage() ? true 
+                        : workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) and workPackageController.editable ? false
+                          : !workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) ? true 
+                            : !workPackageController.editable}"
+                    >
+                      <f:validateDoubleRange
+                        minimum="0.00"
+                        maximum="1000000000.00"
+                      />
+                      <p:ajax />
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('P5')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                  <h:message for="p5_re" errorClass="error" />
+                </div>
+
+                <div class="standardInputContainer">
+                  <h:panelGroup>
+                    <div class="labelWrapper">
+                      <p:outputLabel
+                        for="@next"
+                        value="#{msgs.p6BudgetEstimateLabel}"
+                      />
+                    </div>
+                    <p:inputText
+                      id="p6_re"
+                      value="#{workPackageController.currentWorkPackage.rollingEstimate.p6}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                      validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                      disabled="#{!workPackageController.currentWorkPackage.isLowestLevelWorkPackage() ? true 
+                        : workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) and workPackageController.editable ? false
+                          : !workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) ? true 
+                            : !workPackageController.editable}"
+                    >
+                      <f:validateDoubleRange
+                        minimum="0.00"
+                        maximum="1000000000.00"
+                      />
+                      <p:ajax />
+                    </p:inputText>
+                    <small
+                      ><h:outputFormat
+                        value="#{msgs.payGradeCostHelperTextLabel}"
+                      >
+                        <f:param
+                          value="#{projController.getPayGradeCostByName('P6')}" />
+                        <f:convertNumber
+                          type="currency"
+                          currencySymbol="$"
+                          locale="en_US"
+                      /></h:outputFormat>
+                    </small>
+                  </h:panelGroup>
+                  <h:message for="p6_re" errorClass="error" />
+                </div>
+              </div>
+            </div>
+            <p:commandButton
+              value="Edit"
+              action="#{workPackageController.toggleEditable()}"
+              update="@form"
+              styleClass="uiButton"
+              rendered="#{((workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) and !workPackageController.editable) ? true
+            : false) and !workPackageController.currentWorkPackage.id.equals('Sick') and !workPackageController.currentWorkPackage.id.equals('Vacation')}"
+            >
+            </p:commandButton>
+            <p:commandButton
+              value="Save"
+              action="#{workPackageController.saveCurrentWorkPackage()}"
+              update="@form"
+              styleClass="uiButton"
+              rendered="#{workPackageController.currentWorkPackage.responsibleEngineer.equals(authController.currentEmployee) and workPackageController.editable}"
+            />
+          </div>
+        </h:form>
+        <p:commandButton
+          value="#{msgs.backButtonText}"
+          styleClass="uiButton"
+          action="project-work-packages?faces-redirect=true"
+          immediate="true"
+        />
+      </h:panelGroup>
+    </ui:composition>
+  </body>
+</html>

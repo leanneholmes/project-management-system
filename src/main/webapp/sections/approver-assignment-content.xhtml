@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:p="http://primefaces.org/ui"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+>
+  <head>
+    <title>IGNORED</title>
+  </head>
+  <body>
+    <ui:composition>
+      <h:panelGroup
+        class="inaccessiblePageContentContainer"
+        rendered="#{!authController.employeeIsLoggedIn() or
+                    !authController.currentEmployee.getEmpType().equals('PM')}"
+      >
+        <div class="inaccessiblePageErrorLoggedIn">
+          <div class="pageHeader">
+            <h:outputText
+              value="#{msgs.inaccessiblePageHeaderLoggedIn}"
+              escape="false"
+            />
+          </div>
+        </div>
+      </h:panelGroup>
+      <h:panelGroup
+        layout="block"
+        class="contentContainer"
+        rendered="#{authController.employeeIsLoggedIn() and
+                authController.currentEmployee.getEmpType().equals('PM')}"
+      >
+        <div class="pageHeader">Approver Assignment</div>
+
+        <h:form>
+          <p:dataTable
+            value="#{aaController.superviseesList}"
+            var="emp"
+            editable="true"
+          >
+            <p:column headerText="EmployeeNumber">
+              <h:outputText value="#{emp.empNumber}" />
+            </p:column>
+            <p:column headerText="EmployeeName">
+              <h:outputText value="#{emp.empName}" />
+            </p:column>
+            <p:column headerText="EmployeeType">
+              <h:outputText value="#{emp.empType}" />
+            </p:column>
+            <p:column headerText="Approver">
+              <p:cellEditor>
+                <f:facet name="output">
+                  <h:outputText value="#{emp.approver.username}" />
+                </f:facet>
+                <f:facet name="input">
+                  <p:selectOneMenu value="#{emp.approver}">
+                    <f:converter converterId="employeeConverter" />
+                    <f:selectItems
+                      value="#{aaController.getEmployeesToSelect(authController.currentEmployee, emp)}"
+                    />
+                  </p:selectOneMenu>
+                </f:facet>
+              </p:cellEditor>
+            </p:column>
+            <p:column>
+              <p:rowEditor
+                editTitle="Edit Row"
+                cancelTitle="Cancel Edit"
+                saveTitle="Save Row"
+              />
+            </p:column>
+
+            <p:ajax
+              event="rowEdit"
+              listener="#{aaController.update(emp)}"
+              update="@form"
+              oncomplete="location.reload()"
+            />
+          </p:dataTable>
+        </h:form>
+      </h:panelGroup>
+    </ui:composition>
+  </body>
+</html>

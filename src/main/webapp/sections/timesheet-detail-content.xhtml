@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:h="http://xmlns.jcp.org/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        xmlns:f="http://xmlns.jcp.org/jsf/core"
+        xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+>
+<head>
+  <title>IGNORED</title>
+</head>
+<body>
+<ui:composition>
+  <h:panelGroup
+          class="inaccessiblePageContentContainer"
+          rendered="#{!authController.employeeIsLoggedIn() or
+                    tsdController.selectedTimesheet == null}"
+  >
+    <div class="inaccessiblePageError">
+      <div class="pageHeader">
+        <h:outputText
+                value="#{msgs.inaccessiblePageHeaderLoggedIn}"
+                escape="false"
+        />
+      </div>
+    </div>
+  </h:panelGroup>
+  <h:panelGroup
+          id="timesheetDetailPanel"
+          layout="block"
+          class="contentContainer"
+          rendered="#{authController.employeeIsLoggedIn() and
+                    tsdController.selectedTimesheet != null}"
+  >
+    <div class="pageHeader">Timesheet Detail</div>
+
+    <h:form style="width: 90%">
+      <div style="display: flex; justify-content: end">
+        <p:commandButton
+                value="Submit"
+                update="timesheetDetailPanel"
+                action="#{tsdController.submit(authController.currentEmployee)}"
+                rendered="#{tsdController.renderIfDraftOrRejected()}"
+        />
+      </div>
+
+      <h:messages style="color: red" />
+
+      <p:panelGrid style="width: 100%">
+        <f:facet name="header">
+          <p:row>
+            <p:column colspan="3">Timesheet Info</p:column>
+          </p:row>
+        </f:facet>
+
+        <p:row>
+          <p:column styleClass="ui-widget-header">
+            <p:outputLabel for="timesheetId" value="TimesheetId: " />
+          </p:column>
+          <p:column styleClass="ui-widget-header">
+            <p:outputLabel for="endDate" value="EndDate: " />
+          </p:column>
+          <p:column styleClass="ui-widget-header">
+            <p:outputLabel for="status" value="Status: " />
+          </p:column>
+        </p:row>
+
+        <p:row>
+          <p:column>
+            <h:outputText
+                    id="timesheetId"
+                    value="#{tsdController.selectedTimesheet.id}"
+            />
+          </p:column>
+          <p:column>
+            <h:outputText
+                    id="endDate"
+                    value="#{tsdController.selectedTimesheet.endDate}"
+            />
+          </p:column>
+          <p:column>
+            <h:outputText
+                    id="status"
+                    value="#{tsdController.selectedTimesheet.status}"
+            />
+          </p:column>
+        </p:row>
+
+        <p:row>
+          <p:column styleClass="ui-widget-header">
+            <p:outputLabel for="overtime" value="Overtime: " />
+          </p:column>
+          <p:column styleClass="ui-widget-header">
+            <p:outputLabel for="flextime" value="Flextime: " />
+          </p:column>
+          <p:column styleClass="ui-widget-header">
+            <p:outputLabel for="comments" value="Comments: " />
+          </p:column>
+        </p:row>
+        <p:row>
+          <p:column>
+            <p:inputText
+                    id="overtime"
+                    value="#{tsdController.selectedTimesheet.overtime}"
+                    rendered="#{tsdController.renderIfDraftOrRejected()}"
+            />
+            <h:outputText
+                    value="#{tsdController.selectedTimesheet.overtime}"
+                    rendered="#{tsdController.renderIfPendingOrApproved()}"
+            />
+          </p:column>
+          <p:column>
+            <p:inputText
+                    id="flextime"
+                    value="#{tsdController.selectedTimesheet.flextime}"
+                    rendered="#{tsdController.renderIfDraftOrRejected()}"
+            />
+            <h:outputText
+                    value="#{tsdController.selectedTimesheet.flextime}"
+                    rendered="#{tsdController.renderIfPendingOrApproved()}"
+            />
+          </p:column>
+          <p:column>
+            <p:inputTextarea
+                    id="comments"
+                    value="#{tsdController.selectedTimesheet.comments}"
+                    rendered="#{tsdController.renderIfDraftOrRejected()}"
+                    style="width: 100%"
+            />
+            <p:inputTextarea
+                    value="#{tsdController.selectedTimesheet.comments}"
+                    readonly="true"
+                    rendered="#{tsdController.renderIfPendingOrApproved()}"
+                    style="width: 100%"
+            />
+          </p:column>
+        </p:row>
+
+        <p:row>
+          <p:column styleClass="ui-widget-header">
+            <p:outputLabel for="employeeName" value="EmployeeName: " />
+          </p:column>
+          <p:column styleClass="ui-widget-header">
+            <p:outputLabel for="signedDate" value="SignedDate: " />
+          </p:column>
+          <p:column styleClass="ui-widget-header">
+            <p:outputLabel for="signature" value="EmployeeSignature: " />
+          </p:column>
+        </p:row>
+        <p:row>
+          <p:column>
+            <h:outputText
+                    id="employeeName"
+                    value="#{tsdController.selectedTimesheet.empName}"
+            />
+          </p:column>
+          <p:column>
+            <h:outputText
+                    id="signedDate"
+                    value="#{tsdController.selectedTimesheet.signedDate}"
+            />
+          </p:column>
+          <p:column style="display: flex">
+            <p:signature
+                    id="signature"
+                    style="width: 300px; height: 100px"
+                    widgetVar="sig"
+                    required="true"
+                    requiredMessage="signature is required"
+                    value="#{tsdController.selectedTimesheet.empSignature}"
+                    rendered="#{tsdController.renderIfDraftOrRejected()}"
+            />
+            <p:signature
+                    style="width: 300px; height: 100px"
+                    readonly="true"
+                    value="#{tsdController.selectedTimesheet.empSignature}"
+                    rendered="#{tsdController.renderIfPendingOrApproved()}"
+            />
+            <div>
+              <p:commandButton
+                      value="Clear"
+                      onclick="PF('sig').clear()"
+                      rendered="#{tsdController.renderIfDraftOrRejected()}"
+              />
+            </div>
+          </p:column>
+        </p:row>
+
+        <p:row>
+          <p:column styleClass="ui-widget-header">
+            <p:outputLabel for="approverName" value="ApproverName: " />
+          </p:column>
+          <p:column styleClass="ui-widget-header">
+            <p:outputLabel for="responseDate" value="ResponseDate: " />
+          </p:column>
+          <p:column styleClass="ui-widget-header">
+            <p:outputLabel for="appSignature" value="ApproverSignature: " />
+          </p:column>
+        </p:row>
+        <p:row>
+          <p:column>
+            <h:outputText
+                    id="approverName"
+                    value="#{tsdController.selectedTimesheet.approverName}"
+            />
+          </p:column>
+          <p:column>
+            <h:outputText
+                    id="responseDate"
+                    value="#{tsdController.selectedTimesheet.responseDate}"
+            />
+          </p:column>
+          <p:column>
+            <p:signature
+                    id="appSignature"
+                    style="width: 300px; height: 100px"
+                    readonly="true"
+                    value="#{tsdController.selectedTimesheet.approverSignature}"
+            />
+          </p:column>
+        </p:row>
+      </p:panelGrid>
+    </h:form>
+
+    <h:form style="width: 90%">
+      <p:dataTable var="etsr" value="#{tsdController.list}">
+        <f:facet name="header">
+          <h:outputText
+                  styleClass="ui-widget-header"
+                  value="Timesheet Rows"
+          />
+        </f:facet>
+        <p:column headerText="Project">
+          <h:outputText
+                  value="#{etsr.timesheetRow.project.projectName}"
+                  rendered="#{!etsr.editable}"
+          />
+          <p:selectOneMenu
+                  id="projectMenu"
+                  value="#{etsr.timesheetRow.project}"
+                  rendered="#{etsr.editable}"
+                  converter="#{projectConverter}"
+                  required="true"
+                  requiredMessage="Error - Project is required"
+          >
+            <f:selectItem itemLabel="--" itemValue="#{null}" />
+            <f:selectItems
+                    value="#{tsdController.getAssignedProjects(authController.currentEmployee)}"
+                    var="proj"
+                    itemLabel="#{proj.projectName}"
+                    itemValue="#{proj}"
+                    itemDisabled="#{tsdController.checkIfAllWorkPackagesInProjectHaveBeenChargedTo(proj)}"
+            />
+            <f:selectItems
+                    value="#{tsdController.getProjectsOf(authController.currentEmployee)}"
+                    var="proj"
+                    itemLabel="#{proj.projectName}"
+                    itemValue="#{proj}"
+            />
+            <p:ajax event="change" update="workPackageMenu" />
+          </p:selectOneMenu>
+        </p:column>
+        <p:column headerText="Work&#160;Package" style="width: 6rem">
+          <h:outputText
+                  value="#{etsr.timesheetRow.workPackage.name} / #{etsr.timesheetRow.workPackage.id}"
+                  rendered="#{!etsr.editable}"
+          />
+          <p:selectOneMenu
+                  id="workPackageMenu"
+                  value="#{etsr.timesheetRow.workPackage}"
+                  rendered="#{etsr.editable}"
+                  converter="#{workPackageConverter}"
+                  required="true"
+                  requiredMessage="Error - Work package is required"
+          >
+            <f:selectItem itemLabel="--" itemValue="#{null}" />
+            <f:selectItems
+                    value="#{tsdController.getWorkPackagesByProjectId(etsr.timesheetRow.project.projectId)}"
+                    var="wp"
+                    itemLabel="#{wp.name} / #{wp.id}"
+                    itemValue="#{wp}"
+                    itemDisabled="#{tsdController.checkIfWorkPackageHasBeenChargedTo(wp)}"
+            />
+            <p:ajax event="change" update="@form" />
+          </p:selectOneMenu>
+        </p:column>
+        <p:column headerText="Total">
+          <h:outputText value="#{etsr.getTotalHours()}" />
+        </p:column>
+        <p:column headerText="Sat">
+          <h:outputText
+                  value="#{etsr.timesheetRow.satHours}"
+                  rendered="#{!etsr.editable}"
+          />
+          <p:inputText
+                  value="#{etsr.timesheetRow.satHours}"
+                  rendered="#{etsr.editable}"
+                  validator="#{tsdController.validateHourInput}"
+          />
+        </p:column>
+        <p:column headerText="Sun">
+          <h:outputText
+                  value="#{etsr.timesheetRow.sunHours}"
+                  rendered="#{!etsr.editable}"
+          />
+          <p:inputText
+                  value="#{etsr.timesheetRow.sunHours}"
+                  rendered="#{etsr.editable}"
+                  validator="#{tsdController.validateHourInput}"
+          />
+        </p:column>
+        <p:column headerText="Mon">
+          <h:outputText
+                  value="#{etsr.timesheetRow.monHours}"
+                  rendered="#{!etsr.editable}"
+          />
+          <p:inputText
+                  value="#{etsr.timesheetRow.monHours}"
+                  rendered="#{etsr.editable}"
+                  validator="#{tsdController.validateHourInput}"
+          />
+        </p:column>
+        <p:column headerText="Tue">
+          <h:outputText
+                  value="#{etsr.timesheetRow.tueHours}"
+                  rendered="#{!etsr.editable}"
+          />
+          <p:inputText
+                  value="#{etsr.timesheetRow.tueHours}"
+                  rendered="#{etsr.editable}"
+                  validator="#{tsdController.validateHourInput}"
+          />
+        </p:column>
+        <p:column headerText="Wed">
+          <h:outputText
+                  value="#{etsr.timesheetRow.wedHours}"
+                  rendered="#{!etsr.editable}"
+          />
+          <p:inputText
+                  value="#{etsr.timesheetRow.wedHours}"
+                  rendered="#{etsr.editable}"
+                  validator="#{tsdController.validateHourInput}"
+          />
+        </p:column>
+        <p:column headerText="Thu">
+          <h:outputText
+                  value="#{etsr.timesheetRow.thuHours}"
+                  rendered="#{!etsr.editable}"
+          />
+          <p:inputText
+                  value="#{etsr.timesheetRow.thuHours}"
+                  rendered="#{etsr.editable}"
+                  validator="#{tsdController.validateHourInput}"
+          />
+        </p:column>
+        <p:column headerText="Fri">
+          <h:outputText
+                  value="#{etsr.timesheetRow.friHours}"
+                  rendered="#{!etsr.editable}"
+          />
+          <p:inputText
+                  value="#{etsr.timesheetRow.friHours}"
+                  rendered="#{etsr.editable}"
+                  validator="#{tsdController.validateHourInput}"
+          />
+        </p:column>
+        <p:column headerText="Notes">
+          <h:outputText
+                  value="#{etsr.timesheetRow.notes}"
+                  rendered="#{!etsr.editable}"
+          />
+          <p:inputText
+                  value="#{etsr.timesheetRow.notes}"
+                  rendered="#{etsr.editable}"
+          />
+        </p:column>
+        <p:column rendered="#{tsdController.renderIfDraftOrRejected()}">
+          <p:commandButton
+                  styleClass="ui-button-info"
+                  value="Edit"
+                  action="#{tsdController.edit(etsr)}"
+                  update="@form"
+                  rendered="#{(!etsr.editable)}"
+          />
+          <p:commandButton
+                  styleClass="ui-button-info"
+                  value="Save"
+                  action="#{tsdController.save(etsr)}"
+                  update="@form"
+                  rendered="#{(etsr.editable)}"
+          />
+        </p:column>
+        <p:column rendered="#{tsdController.renderIfDraftOrRejected()}">
+          <p:commandButton
+                  styleClass="ui-button-danger"
+                  value="Delete"
+                  action="#{tsdController.delete(etsr)}"
+                  update="@form"
+          />
+        </p:column>
+
+        <p:columnGroup type="footer">
+          <p:row>
+            <p:column colspan="2">
+              <f:facet name="footer">
+                <h:outputText value="Total: #{tsdController.list.size()}" />
+              </f:facet>
+            </p:column>
+            <p:column>
+              <f:facet name="footer">
+                <h:outputText value="#{tsdController.getSum()}" />
+              </f:facet>
+            </p:column>
+            <p:column>
+              <f:facet name="footer">
+                <h:outputText value="#{tsdController.getSatSum()}" />
+              </f:facet>
+            </p:column>
+            <p:column>
+              <f:facet name="footer">
+                <h:outputText value="#{tsdController.getSunSum()}" />
+              </f:facet>
+            </p:column>
+            <p:column>
+              <f:facet name="footer">
+                <h:outputText value="#{tsdController.getMonSum()}" />
+              </f:facet>
+            </p:column>
+            <p:column>
+              <f:facet name="footer">
+                <h:outputText value="#{tsdController.getTueSum()}" />
+              </f:facet>
+            </p:column>
+            <p:column>
+              <f:facet name="footer">
+                <h:outputText value="#{tsdController.getWedSum()}" />
+              </f:facet>
+            </p:column>
+            <p:column>
+              <f:facet name="footer">
+                <h:outputText value="#{tsdController.getThuSum()}" />
+              </f:facet>
+            </p:column>
+            <p:column
+                    colspan="#{tsdController.renderIfDraftOrRejected() ? 3 : 2}"
+            >
+              <f:facet name="footer">
+                <h:outputText value="#{tsdController.getFriSum()}" />
+              </f:facet>
+            </p:column>
+            <p:column rendered="#{tsdController.renderIfDraftOrRejected()}">
+              <f:facet name="footer">
+                <p:commandButton
+                        value="Add"
+                        action="#{tsdController.add()}"
+                        update="@form"
+                />
+              </f:facet>
+            </p:column>
+          </p:row>
+        </p:columnGroup>
+      </p:dataTable>
+      <h:messages style="color: red" />
+    </h:form>
+  </h:panelGroup>
+</ui:composition>
+</body>
+</html>

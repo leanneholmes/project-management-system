@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:p="http://primefaces.org/ui"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+>
+  <head>
+    <title>IGNORED</title>
+  </head>
+
+  <body>
+    <ui:composition>
+      <f:metadata>
+        <f:event
+          type="preRenderView"
+          listener="#{workPackageController.displayWorkPackageCreationSuccessMessage()}"
+        />
+        <f:event
+          type="preRenderView"
+          listener="#{workPackageController.displayWorkPackageDeletionSuccessMessage()}"
+        />
+        <ui:remove>
+          <f:event
+            type="preRenderView"
+            listener="#{projController.refreshProjectsList()}"
+          />
+        </ui:remove>
+      </f:metadata>
+
+      <h:panelGroup
+        class="inaccessiblePageContentContainer"
+        rendered="#{!authController.employeeIsLoggedIn() ? true : projController.currentProject == null ? true :
+          authController.currentEmployee.equals(projController.currentProject.getProjectManager()) ? false :
+            !projController.currentProject.assignedEmployees.contains(authController.currentEmployee)}"
+      >
+        <div class="inaccessiblePageError">
+          <div class="pageHeader">
+            <h:outputText
+              value="#{msgs.inaccessiblePageHeaderLoggedIn}"
+              escape="false"
+            />
+          </div>
+        </div>
+      </h:panelGroup>
+
+      <h:panelGroup
+        layout="block"
+        class="contentContainer"
+        rendered="#{authController.employeeIsLoggedIn() and projController.currentProject != null and 
+          (authController.currentEmployee.equals(projController.currentProject.getProjectManager()) or 
+            projController.currentProject.assignedEmployees.contains(authController.currentEmployee)) ? true : false}"
+      >
+        <h:outputFormat
+          class="pageHeader"
+          value="#{msgs.projectWorkPackagesPageMsg}"
+        >
+          <f:param value="#{projController.currentProject.projectId}" />
+          <f:convertNumber type="currency" currencySymbol="$" locale="en_US"
+        /></h:outputFormat>
+        <h:form id="form" styleClass="form">
+          <div class="contentContainer" style="margin-top: 0 !important">
+            <!-- <div class="card"> -->
+            <p:treeTable
+              id="workPackages"
+              value="#{ttWorkPackageBean.root}"
+              var="workPackage"
+              selectionMode="single"
+              selection="#{ttWorkPackageBean.selectedNode}"
+            >
+              <f:facet name="header">
+                <h:outputFormat value="#{msgs.workPackagesLabel}">
+                  <f:param
+                    value="#{projController.currentProject.projectName}" />
+                  <f:convertNumber
+                    type="currency"
+                    currencySymbol="$"
+                    locale="en_US"
+                /></h:outputFormat>
+              </f:facet>
+              <p:column headerText="#{msgs.workPackageIdLabel}">
+                <h:outputText value="#{workPackage.id}" />
+              </p:column>
+              <p:column headerText="#{msgs.workPackageNameLabel}">
+                <h:outputText value="#{workPackage.name}" />
+              </p:column>
+              <p:column style="width: 3rem">
+                <p:commandButton
+                  action="#{workPackageController.navigateToWorkPackage(workPackage)}"
+                  styleClass="rounded-button ui-button-info"
+                  icon="pi pi-search"
+                  title="#{msgs.viewWorkPackageTitle}"
+                  disabled="#{workPackage.placeholder}"
+                />
+              </p:column>
+              <p:column style="width: 3rem">
+                <p:commandButton
+                  action="#{workPackageController.navigateToWorkPackageEmployeesPage(workPackage)}"
+                  styleClass="rounded-button ui-button-warning"
+                  icon="pi pi-user-edit"
+                  title="#{msgs.manageEmployeesTitle}"
+                  disabled="#{!authController.currentEmployee.equals(workPackage.getProject().getProjectManager()) or 
+                    workPackage.placeholder or workPackage.id.equals('Sick') or workPackage.id.equals('Vacation')}"
+                />
+              </p:column>
+              <p:column style="width: 3rem">
+                <p:commandButton
+                  action="#{workPackageController.setCurrentWorkPackage(workPackage)}"
+                  oncomplete="PF('dlg4').show()"
+                  update="form"
+                  styleClass="rounded-button ui-button-success"
+                  icon="pi pi-plus-circle"
+                  title="#{msgs.addWorkPackageTitle}"
+                  disabled="#{(workPackageController.checkIfChildrenMaxedOut(workPackage) ? true : 
+                    !authController.currentEmployee.equals(workPackage.getProject().getProjectManager())) or workPackage.id.equals('Sick') or workPackage.id.equals('Vacation') or (workPackage.name.equals('Paid Time Off') and workPackage.id == 3)}"
+                >
+                  <p:ajax update="workPackageDialogForm" resetValues="true" />
+                </p:commandButton>
+              </p:column>
+              <p:column style="width: 3rem">
+                <p:commandButton
+                  action="#{workPackageController.deleteWorkPackage(workPackage)}"
+                  styleClass="rounded-button ui-button-danger"
+                  icon="pi pi-trash"
+                  title="#{msgs.deleteWorkPackageTitle}"
+                  disabled="#{(workPackage.timesheetRows.size() gt 0 ? true :
+                  workPackage.placeholder ? true :
+                    workPackage.workPackageChildren.size() gt 0 ? true :
+                    !authController.currentEmployee.equals(workPackage.getProject().getProjectManager())) or workPackage.id.equals('Sick') or workPackage.id.equals('Vacation')}"
+                />
+              </p:column>
+            </p:treeTable>
+            <h:commandButton
+              value="#{msgs.backButtonText}"
+              styleClass="uiButton"
+              action="projects?faces-redirect=true"
+              immediate="true"
+            />
+          </div>
+        </h:form>
+        <p:dialog
+          id="workPackageDialogForm"
+          header="#{msgs.addWorkPackageText}"
+          widgetVar="dlg4"
+          minHeight="40"
+          height="600"
+          width="600"
+          showEffect="fade"
+          modal="true"
+          fitViewport="true"
+        >
+          <h:form style="height: 100%">
+            <p:growl
+              id="growl"
+              showDetail="false"
+              redisplay="false"
+              life="3000"
+            />
+            <div
+              class="standardInputContainer"
+              style="
+                margin-top: 20px !important;
+                margin-bottom: 20px !important;
+              "
+            >
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel
+                    for="@next"
+                    value="#{msgs.workPackageNameLabel}"
+                  />
+                </div>
+                <p:inputText
+                  id="name"
+                  required="true"
+                  value="#{workPackageController.workPackageToAdd.name}"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                />
+              </h:panelGroup>
+              <h:message for="name" errorClass="error" />
+            </div>
+
+            <div
+              class="standardInputContainer"
+              style="margin-bottom: 20px !important"
+            >
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel for="@next" value="#{msgs.startDateLabel}" />
+                </div>
+                <p:datePicker
+                  id="startDate"
+                  mindate="#{workPackageController.todaysDate}"
+                  required="true"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                  validatorMessage="#{msgs.invalidDateErrorMsg}"
+                  value="#{workPackageController.workPackageToAdd.startDate}"
+                  readonlyInput="true"
+                >
+                  <p:ajax event="dateSelect" update="endDate" />
+                </p:datePicker>
+              </h:panelGroup>
+              <h:message for="startDate" errorClass="error" />
+            </div>
+
+            <div
+              class="standardInputContainer"
+              style="margin-bottom: 20px !important"
+            >
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel for="@next" value="#{msgs.endDateLabel}" />
+                </div>
+                <p:datePicker
+                  id="endDate"
+                  mindate="#{workPackageController.workPackageToAdd.startDate}"
+                  required="true"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                  validatorMessage="#{msgs.invalidDateErrorMsg}"
+                  value="#{workPackageController.workPackageToAdd.endDate}"
+                  readonlyInput="true"
+                >
+                </p:datePicker>
+              </h:panelGroup>
+              <h:message for="endDate" errorClass="error" />
+            </div>
+
+            <div
+              class="standardInputContainer"
+              style="margin-bottom: 40px !important"
+            >
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel
+                    for="@next"
+                    value="#{msgs.responsibleEngineerLabel}"
+                  />
+                </div>
+                <p:selectOneMenu
+                  id="responsibleEngineer"
+                  value="#{workPackageController.workPackageToAdd.responsibleEngineer}"
+                  style="width: 300px"
+                  required="true"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                >
+                  <f:converter converterId="employeeConverter" />
+                  <f:selectItem
+                    itemLabel="--"
+                    noSelectItem="true"
+                    itemDisabled="true"
+                  />
+                  <f:selectItem
+                    itemValue="#{projController.currentProject.projectManager}"
+                    itemLabel="#{projController.currentProject.projectManager.username}"
+                  />
+                  <f:selectItems
+                    value="#{projController.currentProject.assignedEmployees}"
+                  />
+                </p:selectOneMenu>
+              </h:panelGroup>
+              <h:message for="responsibleEngineer" errorClass="error" />
+            </div>
+
+            <div class="standardInputContainer">
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel
+                    for="@next"
+                    value="#{msgs.jsBudgetEstimateLabel}"
+                  />
+                </div>
+                <p:inputText
+                  id="JS"
+                  required="true"
+                  value="#{workPackageController.engineerEstimateToAdd.JS}"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                  validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                  converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                >
+                  <f:validateDoubleRange
+                    minimum="0.00"
+                    maximum="1000000000.00"
+                  />
+                </p:inputText>
+                <small
+                  ><h:outputFormat value="#{msgs.payGradeCostHelperTextLabel}">
+                    <f:param
+                      value="#{projController.getPayGradeCostByName('JS')}" />
+                    <f:convertNumber
+                      type="currency"
+                      currencySymbol="$"
+                      locale="en_US"
+                  /></h:outputFormat>
+                </small>
+              </h:panelGroup>
+              <h:message for="JS" errorClass="error" />
+            </div>
+
+            <div class="standardInputContainer">
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel
+                    for="@next"
+                    value="#{msgs.ssBudgetEstimateLabel}"
+                  />
+                </div>
+                <p:inputText
+                  id="SS"
+                  required="true"
+                  value="#{workPackageController.engineerEstimateToAdd.SS}"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                  validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                  converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                >
+                  <f:validateDoubleRange
+                    minimum="0.00"
+                    maximum="1000000000.00"
+                  />
+                </p:inputText>
+                <small
+                  ><h:outputFormat value="#{msgs.payGradeCostHelperTextLabel}">
+                    <f:param
+                      value="#{projController.getPayGradeCostByName('SS')}" />
+                    <f:convertNumber
+                      type="currency"
+                      currencySymbol="$"
+                      locale="en_US"
+                  /></h:outputFormat>
+                </small>
+              </h:panelGroup>
+              <h:message for="SS" errorClass="error" />
+            </div>
+
+            <div class="standardInputContainer">
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel
+                    for="@next"
+                    value="#{msgs.dsBudgetEstimateLabel}"
+                  />
+                </div>
+                <p:inputText
+                  id="DS"
+                  required="true"
+                  value="#{workPackageController.engineerEstimateToAdd.DS}"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                  validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                  converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                >
+                  <f:validateDoubleRange
+                    minimum="0.00"
+                    maximum="1000000000.00"
+                  />
+                </p:inputText>
+                <small
+                  ><h:outputFormat value="#{msgs.payGradeCostHelperTextLabel}">
+                    <f:param
+                      value="#{projController.getPayGradeCostByName('DS')}" />
+                    <f:convertNumber
+                      type="currency"
+                      currencySymbol="$"
+                      locale="en_US"
+                  /></h:outputFormat>
+                </small>
+              </h:panelGroup>
+              <h:message for="DS" errorClass="error" />
+            </div>
+
+            <div class="standardInputContainer">
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel
+                    for="@next"
+                    value="#{msgs.p1BudgetEstimateLabel}"
+                  />
+                </div>
+                <p:inputText
+                  id="P1"
+                  required="true"
+                  value="#{workPackageController.engineerEstimateToAdd.p1}"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                  validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                  converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                >
+                  <f:validateDoubleRange
+                    minimum="0.00"
+                    maximum="1000000000.00"
+                  />
+                </p:inputText>
+                <small
+                  ><h:outputFormat value="#{msgs.payGradeCostHelperTextLabel}">
+                    <f:param
+                      value="#{projController.getPayGradeCostByName('P1')}" />
+                    <f:convertNumber
+                      type="currency"
+                      currencySymbol="$"
+                      locale="en_US"
+                  /></h:outputFormat>
+                </small>
+              </h:panelGroup>
+              <h:message for="P1" errorClass="error" />
+            </div>
+
+            <div class="standardInputContainer">
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel
+                    for="@next"
+                    value="#{msgs.p2BudgetEstimateLabel}"
+                  />
+                </div>
+                <p:inputText
+                  id="P2"
+                  required="true"
+                  value="#{workPackageController.engineerEstimateToAdd.p2}"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                  validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                  converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                >
+                  <f:validateDoubleRange
+                    minimum="0.00"
+                    maximum="1000000000.00"
+                  />
+                </p:inputText>
+                <small
+                  ><h:outputFormat value="#{msgs.payGradeCostHelperTextLabel}">
+                    <f:param
+                      value="#{projController.getPayGradeCostByName('P2')}" />
+                    <f:convertNumber
+                      type="currency"
+                      currencySymbol="$"
+                      locale="en_US"
+                  /></h:outputFormat>
+                </small>
+              </h:panelGroup>
+              <h:message for="P2" errorClass="error" />
+            </div>
+
+            <div class="standardInputContainer">
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel
+                    for="@next"
+                    value="#{msgs.p3BudgetEstimateLabel}"
+                  />
+                </div>
+                <p:inputText
+                  id="P3"
+                  required="true"
+                  value="#{workPackageController.engineerEstimateToAdd.p3}"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                  validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                  converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                >
+                  <f:validateDoubleRange
+                    minimum="0.00"
+                    maximum="1000000000.00"
+                  />
+                </p:inputText>
+                <small
+                  ><h:outputFormat value="#{msgs.payGradeCostHelperTextLabel}">
+                    <f:param
+                      value="#{projController.getPayGradeCostByName('P3')}" />
+                    <f:convertNumber
+                      type="currency"
+                      currencySymbol="$"
+                      locale="en_US"
+                  /></h:outputFormat>
+                </small>
+              </h:panelGroup>
+              <h:message for="P3" errorClass="error" />
+            </div>
+
+            <div class="standardInputContainer">
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel
+                    for="@next"
+                    value="#{msgs.p4BudgetEstimateLabel}"
+                  />
+                </div>
+                <p:inputText
+                  id="P4"
+                  required="true"
+                  value="#{workPackageController.engineerEstimateToAdd.p4}"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                  validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                  converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                >
+                  <f:validateDoubleRange
+                    minimum="0.00"
+                    maximum="1000000000.00"
+                  />
+                </p:inputText>
+                <small
+                  ><h:outputFormat value="#{msgs.payGradeCostHelperTextLabel}">
+                    <f:param
+                      value="#{projController.getPayGradeCostByName('P4')}" />
+                    <f:convertNumber
+                      type="currency"
+                      currencySymbol="$"
+                      locale="en_US"
+                  /></h:outputFormat>
+                </small>
+              </h:panelGroup>
+              <h:message for="P4" errorClass="error" />
+            </div>
+
+            <div class="standardInputContainer">
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel
+                    for="@next"
+                    value="#{msgs.p5BudgetEstimateLabel}"
+                  />
+                </div>
+                <p:inputText
+                  id="P5"
+                  required="true"
+                  value="#{workPackageController.engineerEstimateToAdd.p5}"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                  validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                  converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                >
+                  <f:validateDoubleRange
+                    minimum="0.00"
+                    maximum="1000000000.00"
+                  />
+                </p:inputText>
+                <small
+                  ><h:outputFormat value="#{msgs.payGradeCostHelperTextLabel}">
+                    <f:param
+                      value="#{projController.getPayGradeCostByName('P5')}" />
+                    <f:convertNumber
+                      type="currency"
+                      currencySymbol="$"
+                      locale="en_US"
+                  /></h:outputFormat>
+                </small>
+              </h:panelGroup>
+              <h:message for="P5" errorClass="error" />
+            </div>
+
+            <div class="standardInputContainer">
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel
+                    for="@next"
+                    value="#{msgs.p6BudgetEstimateLabel}"
+                  />
+                </div>
+                <p:inputText
+                  id="P6"
+                  required="true"
+                  value="#{workPackageController.engineerEstimateToAdd.p6}"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                  validatorMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                  converterMessage="#{msgs.invalidBudgetEstimateErrorMsg}"
+                >
+                  <f:validateDoubleRange
+                    minimum="0.00"
+                    maximum="1000000000.00"
+                  />
+                </p:inputText>
+                <small
+                  ><h:outputFormat value="#{msgs.payGradeCostHelperTextLabel}">
+                    <f:param
+                      value="#{projController.getPayGradeCostByName('P6')}" />
+                    <f:convertNumber
+                      type="currency"
+                      currencySymbol="$"
+                      locale="en_US"
+                  /></h:outputFormat>
+                </small>
+              </h:panelGroup>
+              <h:message for="P6" errorClass="error" />
+            </div>
+
+            <p:commandButton
+              value="Add Work Package"
+              widgetVar="addWpButton"
+              oncomplete="if (args &amp;&amp; !args.validationFailed) PF('dlg4').hide()"
+              action="#{workPackageController.addNewWorkPackage(projController.getCurrentProject(), workPackageController.getCurrentWorkPackage())}"
+              styleClass="pfUIButton"
+              update="growl"
+            >
+              <f:ajax execute="@form" render="@form" />
+            </p:commandButton>
+          </h:form>
+        </p:dialog>
+      </h:panelGroup>
+    </ui:composition>
+  </body>
+</html>

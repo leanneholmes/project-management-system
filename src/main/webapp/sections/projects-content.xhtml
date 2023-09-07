@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:p="http://primefaces.org/ui"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+>
+  <head>
+    <title>IGNORED</title>
+  </head>
+
+  <body>
+    <ui:composition>
+      <f:metadata>
+        <f:event
+          type="preRenderView"
+          listener="#{projController.displayProjectCreationSuccessMessage()}"
+        />
+        <f:event
+          type="preRenderView"
+          listener="#{projController.refreshProjectsList()}"
+        />
+      </f:metadata>
+      <h:panelGroup
+        class="inaccessiblePageContentContainer"
+        rendered="#{!authController.employeeIsLoggedIn()}"
+      >
+        <div class="inaccessiblePageError">
+          <div class="pageHeader">
+            <h:outputText
+              value="#{msgs.inaccessiblePageHeaderLoggedIn} "
+              escape="false"
+            />
+          </div>
+        </div>
+      </h:panelGroup>
+      <h:panelGroup
+        layout="block"
+        class="contentContainer"
+        rendered="#{authController.employeeIsLoggedIn()}"
+      >
+        <div class="pageHeader">#{msgs.selectProjectPageMsg}</div>
+        <h:form styleClass="form">
+          <div class="contentContainer" style="margin-top: 0 !important">
+            <p:dataTable
+              id="projects"
+              var="project"
+              value="#{authController.currentEmployee.getSupervisees().size() > 0 ? projController.projects : 
+                authController.currentEmployee.getEmpType().equals('PM') ? projController.getAssignedAndManagedProjects(authController.currentEmployee) :
+                  projController.getAssignedProjects(authController.currentEmployee)}"
+              editable="true"
+              style="margin-bottom: 30px"
+            >
+              <p:ajax
+                event="rowEdit"
+                listener="#{projController.updateProjects()}"
+                update="@all"
+                oncomplete="if (args &amp;&amp; !args.validationFailed) location.reload()"
+              />
+              <p:column headerText="#{msgs.projectIdLabel}">
+                <h:outputText
+                  class="tableOutputText"
+                  value="#{project.projectId}"
+                />
+              </p:column>
+              <p:column headerText="#{msgs.projectManagerLabel}">
+                <h:outputText
+                  class="tableOutputText"
+                  value="#{project.projectManager.empName}"
+                />
+              </p:column>
+              <p:column headerText="#{msgs.projectNameLabel}">
+                <p:cellEditor>
+                  <f:facet name="output">
+                    <h:outputText
+                      class="tableOutputText"
+                      value="#{project.projectName}"
+                    />
+                  </f:facet>
+                  <f:facet name="input">
+                    <p:inputText
+                      id="name"
+                      value="#{project.projectName}"
+                      style="width: 100%"
+                      label="#{msgs.projectNameLabel}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                    />
+                    <h:message for="name" errorClass="error" />
+                  </f:facet>
+                </p:cellEditor>
+              </p:column>
+              <p:column headerText="#{msgs.projectDescriptionLabel}">
+                <p:cellEditor>
+                  <f:facet name="output">
+                    <h:outputText
+                      class="tableOutputText"
+                      value="#{project.projectDescription}"
+                    />
+                  </f:facet>
+                  <f:facet name="input">
+                    <p:inputText
+                      id="description"
+                      value="#{project.projectDescription}"
+                      style="width: 100%"
+                      label="#{msgs.projectDescriptionLabel}"
+                    />
+                    <h:message for="description" errorClass="error" />
+                  </f:facet>
+                </p:cellEditor>
+              </p:column>
+              <p:column headerText="#{msgs.projectAllocatedBudgetLabel}">
+                <p:cellEditor>
+                  <f:facet name="output">
+                    <h:outputText
+                      class="tableOutputText"
+                      value="#{empty project.projectAllocatedBudget ? msgs.none : project.projectAllocatedBudget }"
+                    >
+                      <f:convertNumber
+                        type="currency"
+                        currencySymbol="$"
+                        locale="en_US"
+                      />
+                    </h:outputText>
+                  </f:facet>
+                  <f:facet name="input">
+                    <p:inputNumber
+                      id="allocated-budget"
+                      class="ui-inputnumber-table"
+                      symbol="$"
+                      decimalSeparator="."
+                      thousandSeparator=","
+                      decimalPlaces="2"
+                      value="#{project.projectAllocatedBudget}"
+                      validatorMessage="#{msgs.invalidProjectAllocatedBudgetErrorMsg}"
+                    >
+                      <f:validateDoubleRange
+                        minimum="0.00"
+                        maximum="1000000000.00"
+                      />
+                    </p:inputNumber>
+                    <h:message for="allocated-budget" errorClass="error" />
+                  </f:facet>
+                </p:cellEditor>
+              </p:column>
+              <p:column
+                headerText="#{msgs.projectEngineerEstimatedBudgetLabel}"
+              >
+                <h:outputText
+                  class="tableOutputText"
+                  value="#{empty workPackageController.getProjectBudgetEstimate(project, 'engineerEstimate') ? msgs.none : workPackageController.getProjectBudgetEstimate(project, 'engineerEstimate')}"
+                >
+                  <f:convertNumber
+                    type="currency"
+                    currencySymbol="$"
+                    locale="en_US"
+                  />
+                </h:outputText>
+              </p:column>
+              <p:column headerText="#{msgs.projectRollingEstimateBudgetLabel}">
+                <h:outputText
+                  class="tableOutputText"
+                  value="#{empty workPackageController.getProjectBudgetEstimate(project, 'rollingEstimate') ? msgs.none : workPackageController.getProjectBudgetEstimate(project, 'rollingEstimate')}"
+                >
+                  <f:convertNumber
+                    type="currency"
+                    currencySymbol="$"
+                    locale="en_US"
+                  />
+                </h:outputText>
+              </p:column>
+              <p:column style="width: 3rem">
+                <p:rowEditor
+                  rendered="#{(authController.currentEmployee.empNumber == project.projectManager.empNumber) and (project.projectId != 3)}"
+                  editTitle="#{msgs.editRowTitle}"
+                  cancelTitle="#{msgs.cancelEditTitle}"
+                  saveTitle="#{msgs.saveRowTitle}"
+                />
+              </p:column>
+              <p:column style="width: 3rem">
+                <p:commandButton
+                  type="submit"
+                  action="#{projController.navigateToProjectEmployeesPage(project)}"
+                  styleClass="rounded-button ui-button-warning"
+                  icon="pi pi-user-edit"
+                  title="#{msgs.manageEmployeesTitle}"
+                  disabled="#{(authController.currentEmployee.supervisees.size() == 0 and project.assignedEmployees.size() == 0 ? true : 
+                    authController.currentEmployee.equals(project.getProjectManager()) ? false : 
+                      authController.currentEmployee.supervisees.size() gt 0 ? false : 
+                        project.checkIfAllEmployeesAssignedToProject(authController.currentEmployee)) or project.projectId == 3}"
+                />
+              </p:column>
+              <p:column style="width: 3rem">
+                <p:commandButton
+                  type="submit"
+                  action="#{projController.navigateToProjectWorkPackagesPage(project)}"
+                  styleClass="rounded-button ui-button-help"
+                  icon="pi pi-sitemap"
+                  title="#{msgs.workPackagesTitle}"
+                  disabled="#{authController.currentEmployee.equals(project.getProjectManager()) ? false : !project.getAssignedEmployees().contains(authController.currentEmployee)}"
+                />
+              </p:column>
+            </p:dataTable>
+            <p:commandButton
+              value="#{msgs.createProjectButtonText}"
+              rendered="#{authController.currentEmployee.empType.equals('PM')}"
+              icon="pi pi-external-link"
+              styleClass="pfUIButton"
+              type="button"
+              onclick="PF('dlg1').show()"
+              style="margin-top: 30px !important"
+            />
+            <h:commandButton
+              value="#{msgs.backButtonText}"
+              styleClass="uiButton"
+              action="index?faces-redirect=true"
+              immediate="true"
+            />
+          </div>
+        </h:form>
+      </h:panelGroup>
+    </ui:composition>
+  </body>
+</html>

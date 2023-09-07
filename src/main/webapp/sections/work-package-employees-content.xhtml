@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:p="http://primefaces.org/ui"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+>
+  <head>
+    <title>IGNORED</title>
+  </head>
+
+  <body>
+    <ui:composition>
+      <f:metadata>
+        <f:event
+          type="preRenderView"
+          listener="#{projController.displayProjectAssignmentSuccessMessage()}"
+        />
+      </f:metadata>
+      <h:panelGroup
+        class="inaccessiblePageContentContainer"
+        rendered="#{!(authController.employeeIsLoggedIn() and projController.currentProject.getProjectManager().equals(authController.currentEmployee))}"
+      >
+        <div class="inaccessiblePageError">
+          <div class="pageHeader">
+            <h:outputText
+              value="#{msgs.inaccessiblePageHeaderLoggedIn}"
+              escape="false"
+            />
+          </div>
+        </div>
+      </h:panelGroup>
+      <h:panelGroup
+        layout="block"
+        class="contentContainer"
+        rendered="#{authController.employeeIsLoggedIn() and projController.currentProject.getProjectManager().equals(authController.currentEmployee)}"
+      >
+        <h:outputFormat
+          class="pageHeader"
+          value="#{msgs.workPackageEmployeesPageMsg}"
+        >
+          <f:param value="#{workPackageController.currentWorkPackage.name}" />
+        </h:outputFormat>
+        <h:form styleClass="form">
+          <div class="contentContainer" style="margin-top: 0 !important">
+            <p:dataTable
+              id="employees"
+              var="employee"
+              value="#{workPackageController.currentWorkPackage.assignedEmployees}"
+              editable="true"
+              style="margin-bottom: 30px"
+            >
+              <p:column headerText="#{msgs.employeeNumberLabel}">
+                <h:outputText
+                  class="tableOutputText"
+                  value="#{employee.empNumber}"
+                />
+              </p:column>
+              <p:column headerText="#{msgs.usernameLabel}">
+                <h:outputText
+                  class="tableOutputText"
+                  value="#{employee.username}"
+                />
+              </p:column>
+              <p:column headerText="#{msgs.nameLabel}">
+                <h:outputText
+                  class="tableOutputText"
+                  value="#{employee.empName}"
+                />
+              </p:column>
+              <p:column headerText="#{msgs.employeeTypeLabel}">
+                <h:outputText
+                  class="tableOutputText"
+                  value="#{employee.empType}"
+                />
+              </p:column>
+              <p:column headerText="#{msgs.payGradeLabel}">
+                <h:outputText
+                  class="tableOutputText"
+                  value="#{employee.payGrade.name}"
+                />
+              </p:column>
+              <p:column headerText="#{msgs.supervisorLabel}">
+                <h:outputText
+                  class="tableOutputText"
+                  value="#{employee.supervisor}"
+                />
+              </p:column>
+              <p:column
+                style="width: 6rem"
+                rendered="#{workPackageController.currentWorkPackage.responsibleEngineer.equals(employee)}"
+              >
+                <p:commandButton
+                  type="submit"
+                  action="#{workPackageController.removeEmployeeFromWorkPackage(employee)}"
+                  styleClass="rounded-button ui-button-danger"
+                  ajax="false"
+                  icon="pi pi-user-minus"
+                  title="#{msgs.removeEmployeeTitle}"
+                />
+              </p:column>
+            </p:dataTable>
+            <p:commandButton
+              value="#{msgs.assignEmployeeButtonText}"
+              icon="pi pi-external-link"
+              styleClass="pfUIButton"
+              type="button"
+              onclick="PF('dlg5').show()"
+              style="margin-top: 30px !important"
+              disabled="#{projController.currentProject.getAssignedEmployees().size() == 0 ? true :
+                projController.currentProject.getAssignedEmployees().size() == workPackageController.currentWorkPackage.getAssignedEmployees().size() ? true :
+                  projController.currentProject.getAssignedEmployees().size() == 1 and 
+                    projController.currentProject.getAssignedEmployees().contains(workPackageController.currentWorkPackage.getResponsibleEngineer())}"
+            />
+            <h:commandButton
+              value="#{msgs.backButtonText}"
+              styleClass="uiButton"
+              action="project-work-packages?faces-redirect=true"
+              immediate="true"
+            />
+          </div>
+        </h:form>
+        <p:dialog
+          header="#{msgs.assignEmployeeButtonText}"
+          widgetVar="dlg5"
+          minHeight="40"
+          width="600"
+          showEffect="fade"
+        >
+          <h:form>
+            <div
+              class="standardInputContainer"
+              style="margin-top: 20px !important"
+            >
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel for="@next" value="#{msgs.usernameLabel}" />
+                </div>
+                <p:selectOneMenu
+                  id="employeeToAssign"
+                  value="#{employeeController.employeeToAssign}"
+                  style="width: 300px"
+                  required="true"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                >
+                  <f:converter converterId="employeeConverter" />
+                  <f:selectItem
+                    itemLabel="--"
+                    itemDisabled="true"
+                    noSelectionOption="true"
+                  />
+                  <f:selectItems
+                    value="#{projController.currentProject.getAssignedEmployees()}"
+                    var="employee"
+                    itemDisabled="#{workPackageController.currentWorkPackage.responsibleEngineer.equals(employee) or workPackageController.currentWorkPackage.assignedEmployees.contains(employee)}"
+                  />
+                </p:selectOneMenu>
+              </h:panelGroup>
+              <h:message for="employeeToAssign" errorClass="error" />
+            </div>
+            <p:commandButton
+              value="#{msgs.submitButtonText}"
+              action="#{workPackageController.assignEmployeeToWorkPackage(employeeController.employeeToAssign)}"
+              styleClass="pfUIButton"
+            >
+              <f:ajax execute="@form" render="@form" />
+            </p:commandButton>
+          </h:form>
+        </p:dialog>
+      </h:panelGroup>
+    </ui:composition>
+  </body>
+</html>

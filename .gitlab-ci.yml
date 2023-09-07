@@ -1,0 +1,7 @@
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  script:
+    - helm upgrade pms-final-release -f helm.yaml wildfly/wildfly

@@ -1,0 +1,20 @@
+build:
+  uri: 	https://gitlab.infoteach.ca/hongg/ca.bcit.comp4911.bugbuster.pms.git 
+  mode: s2i
+  ref: main
+  sourceSecret: gitlab 
+  s2i:
+    version: latest
+    builderImage: quay.io/wildfly/wildfly-s2i-jdk17
+    runtimeImage: quay.io/wildfly/wildfly-runtime-jdk17
+deploy:
+  replicas: 1
+  env:
+    - name: MYSQL_DATABASE
+      value: pms
+    - name: MYSQL_USER
+      value: bugbuster 
+    - name: MYSQL_PASSWORD
+      value: bugbuster 
+    - name: MYSQL_DATASOURCE
+      value: pms

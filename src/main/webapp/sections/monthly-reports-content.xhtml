@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:p="http://primefaces.org/ui"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+>
+  <head>
+    <title>IGNORED</title>
+  </head>
+  <body>
+    <ui:composition>
+      <h:panelGroup
+        class="inaccessiblePageContentContainer"
+        rendered="#{!authController.employeeIsLoggedIn()}"
+      >
+        <div class="inaccessiblePageError">
+          <div class="pageHeader">
+            <h:outputText
+              value="#{msgs.inaccessiblePageHeaderLoggedIn}"
+              escape="false"
+            />
+          </div>
+        </div>
+      </h:panelGroup>
+      <h:panelGroup
+        layout="block"
+        class="contentContainer"
+        rendered="#{authController.employeeIsLoggedIn()}"
+      >
+        <div class="pageHeader">Monthly Report</div>
+
+        <h:form
+          class="reportForm"
+          style="
+            display: flex;
+            align-content: center;
+            align-items: center;
+            margin-top: 30px;
+          "
+        >
+          <p:outputLabel
+            value="Project"
+            for="projectMenu"
+            style="margin-right: 4px"
+          />
+          <p:selectOneMenu
+            id="projectMenu"
+            value="#{mrptController.currentProject}"
+            converter="#{projectConverter}"
+            style="min-width: 200px"
+          >
+            <f:selectItem itemLabel="--" itemValue="#{null}" />
+            <f:selectItems
+              value="#{mrptController.getProjectsOf(authController.currentEmployee)}"
+              var="proj"
+              itemLabel="#{proj.projectName}"
+              itemValue="#{proj}"
+            />
+          </p:selectOneMenu>
+
+          <p:commandButton
+            value="Generate"
+            action="#{mrptController.generateMonthlyReport()}"
+            update="reportPanel"
+            style="margin-left: 12px"
+          />
+        </h:form>
+
+        <h:panelGroup id="reportPanel">
+          <p:panelGrid>
+            <p:row>
+              <p:column>
+                <p:outputLabel for="currentProject" value="Project" />
+              </p:column>
+              <p:column>
+                <h:outputText
+                  id="currentProject"
+                  value="#{wrptController.currentProject != null ? wrptController.currentProject.projectName : 'none'}"
+                />
+              </p:column>
+            </p:row>
+            <p:row>
+              <p:column>
+                <p:outputLabel for="desc" value="Description" />
+              </p:column>
+              <p:column>
+                <h:outputText
+                  id="desc"
+                  value="#{wrptController.currentProject != null ? wrptController.currentProject.projectDescription : 'none'}"
+                />
+              </p:column>
+            </p:row>
+          </p:panelGrid>
+
+          <p:dataTable value="#{mrptController.workPackageList}" var="wp">
+            <p:column headerText="Work Package">
+              <h:outputText value="#{wp.name} / #{wp.id}" />
+            </p:column>
+            <p:column headerText="Start Date">
+              <h:outputText value="#{wp.startDate}" />
+            </p:column>
+            <p:column headerText="End Date">
+              <h:outputText value="#{wp.endDate}" />
+            </p:column>
+            <p:column headerText="Budget">
+              <h:outputText value="$#{mrptController.getBudget(wp)}" />
+            </p:column>
+            <p:column headerText="Planned Value">
+              <h:outputText value="$#{mrptController.getPlannedValue(wp)}" />
+            </p:column>
+            <p:column headerText="Actual Cost">
+              <h:outputText value="$#{mrptController.getActualCost(wp)}" />
+            </p:column>
+            <p:column headerText="CPI">
+              <h:outputText value="#{mrptController.getCPI(wp)}" />
+            </p:column>
+          </p:dataTable>
+        </h:panelGroup>
+      </h:panelGroup>
+    </ui:composition>
+  </body>
+</html>

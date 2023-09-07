@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:p="http://primefaces.org/ui"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+>
+  <head>
+    <title>IGNORED</title>
+  </head>
+  <body>
+    <ui:composition>
+      <h:panelGroup
+        layout="block"
+        class="inaccessiblePageContentContainer"
+        rendered="#{!authController.employeeIsLoggedIn()}"
+      >
+        <div class="inaccessiblePageError">
+          <div class="pageHeader">
+            <h:outputText
+              value="#{msgs.inaccessiblePageHeaderLoggedIn}"
+              escape="false"
+            />
+          </div>
+        </div>
+      </h:panelGroup>
+      <h:panelGroup
+        layout="block"
+        class="landingPageContainer"
+        rendered="#{authController.employeeIsLoggedIn()}"
+      >
+        <div class="pageHeader">
+          <h:outputFormat value="#{msgs.landingPageHeader}">
+            <f:param value="#{authController.currentEmployee.username}" />
+          </h:outputFormat>
+        </div>
+      </h:panelGroup>
+      <h:panelGroup
+        layout="block"
+        style="text-align: center; margin-top: 2rem"
+        rendered="#{authController.currentEmployee.empType.equals('Admin')}"
+      >
+        <h:form>
+          <div class="pageHeader">
+            <p>Download SQL Backup Dump:</p>
+            <div style="margin-top: 2rem">
+              <a
+                href="#{resource['dump/backup.sql']}"
+                download="backup.sql"
+                class="buttonLink"
+                >Download</a
+              >
+            </div>
+          </div>
+        </h:form>
+      </h:panelGroup>
+    </ui:composition>
+  </body>
+</html>

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:p="http://primefaces.org/ui"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+>
+  <head>
+    <title>IGNORED</title>
+  </head>
+
+  <body>
+    <ui:composition>
+      <f:metadata>
+        <f:event
+          type="preRenderView"
+          listener="#{employeeController.displayCreationSuccessMessage()}"
+        />
+      </f:metadata>
+      <h:panelGroup
+        class="inaccessiblePageContentContainer"
+        rendered="#{!authController.employeeIsLoggedIn() or
+            			!(authController.currentEmployee.getEmpType().equals('Admin') or
+						authController.currentEmployee.getEmpType().equals('HR'))}"
+      >
+        <div class="inaccessiblePageError">
+          <div class="pageHeader">
+            <h:outputText
+              value="#{msgs.inaccessiblePageHeaderLoggedIn}"
+              escape="false"
+            />
+          </div>
+        </div>
+      </h:panelGroup>
+      <h:panelGroup
+        layout="block"
+        class="contentContainer"
+        rendered="#{authController.employeeIsLoggedIn() and
+            			(authController.currentEmployee.getEmpType().equals('Admin') or
+						authController.currentEmployee.getEmpType().equals('HR'))}"
+      >
+        <div class="pageHeader">#{msgs.employeesPageMsg}</div>
+        <h:form styleClass="form">
+          <div class="contentContainer" style="margin-top: 0 !important">
+            <p:dataTable
+              id="employees"
+              var="employee"
+              value="#{employeeController.employees}"
+              editable="true"
+              style="margin-bottom: 30px"
+            >
+              <p:ajax
+                event="rowEdit"
+                listener="#{employeeController.updateEmployees()}"
+                update="@all"
+                oncomplete="if (args &amp;&amp; !args.validationFailed) location.reload()"
+              />
+              <p:column headerText="#{msgs.employeeNumberLabel}">
+                <h:outputText
+                  class="tableOutputText"
+                  value="#{employee.empNumber}"
+                />
+                <ui:remove>
+                  <p:cellEditor>
+                    <f:facet name="output">
+                      <h:outputText value="#{employee.empNumber}" />
+                    </f:facet>
+                    <f:facet name="input">
+                      <p:inputText
+                        id="empNum"
+                        value="#{employee.empNumber}"
+                        style="width: 100%"
+                        label="#{msgs.employeeNumberLabel}"
+                        required="true"
+                        requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                        converterMessage="#{msgs.empNumberConversionErrorMsg}"
+                        validator="#{employeeController.validateFormEmpNumberField}"
+                      >
+                        <f:attribute
+                          name="username"
+                          value="#{employee.username}"
+                        />
+                      </p:inputText>
+                      <h:message for="empNum" errorClass="error" />
+                    </f:facet>
+                  </p:cellEditor>
+                </ui:remove>
+              </p:column>
+              <p:column headerText="#{msgs.usernameLabel}">
+                <h:outputText
+                  class="tableOutputText"
+                  value="#{employee.username}"
+                />
+              </p:column>
+              <p:column headerText="#{msgs.nameLabel}">
+                <p:cellEditor>
+                  <f:facet name="output">
+                    <h:outputText
+                      class="tableOutputText"
+                      value="#{employee.empName}"
+                    />
+                  </f:facet>
+                  <f:facet name="input">
+                    <p:inputText
+                      id="name"
+                      value="#{employee.empName}"
+                      style="width: 100%"
+                      label="#{msgs.nameLabel}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                    />
+                    <h:message for="name" errorClass="error" />
+                  </f:facet>
+                </p:cellEditor>
+              </p:column>
+              <p:column headerText="#{msgs.employeeTypeLabel}">
+                <p:cellEditor>
+                  <f:facet name="output">
+                    <h:outputText
+                      class="tableOutputText"
+                      value="#{employee.empType}"
+                    />
+                  </f:facet>
+                  <f:facet name="input">
+                    <p:selectOneMenu
+                      id="empType"
+                      value="#{employee.empType}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                      validator="#{employeeController.validateFormEmpTypeField}"
+                      disabled="#{employee.empType.equals('Admin')}"
+                    >
+                      <f:selectItem
+                        itemLabel="--"
+                        noSelectItem="true"
+                        itemDisabled="#{!employee.empType.equals('Admin')}"
+                      />
+                      <f:selectItems value="#{employeeController.empTypes}" />
+                    </p:selectOneMenu>
+                    <ui:remove>
+                      <p:inputText
+                        id="empType"
+                        value="#{employee.empType}"
+                        style="width: 100%"
+                        label="#{msgs.employeeTypeLabel}"
+                        required="true"
+                        requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                        validator="#{employeeController.validateFormEmpTypeField}"
+                      />
+                    </ui:remove>
+                    <h:message for="empType" errorClass="error" />
+                  </f:facet>
+                </p:cellEditor>
+              </p:column>
+              <p:column headerText="#{msgs.payGradeLabel}">
+                <p:cellEditor>
+                  <f:facet name="output">
+                    <h:outputText
+                      class="tableOutputText"
+                      value="#{employee.payGrade.name}"
+                    />
+                  </f:facet>
+                  <f:facet name="input">
+                    <p:selectOneMenu
+                      id="payGrade"
+                      value="#{employee.payGrade}"
+                      required="true"
+                      requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                      validator="#{employeeController.validateFormPayGradeField}"
+                    >
+                      <f:converter converterId="payGradeConverter" />
+                      <f:selectItem
+                        itemLabel="--"
+                        noSelectionOption="true"
+                        itemDisabled="true"
+                      />
+                      <f:selectItems value="#{employeeController.payGrades}" />
+                    </p:selectOneMenu>
+                    <h:message for="payGrade" errorClass="error" />
+                  </f:facet>
+                </p:cellEditor>
+              </p:column>
+              <p:column headerText="#{msgs.supervisorLabel}">
+                <p:cellEditor>
+                  <f:facet name="output">
+                    <h:outputText
+                      class="tableOutputText"
+                      value="#{employee.supervisor}"
+                    />
+                  </f:facet>
+                  <f:facet name="input">
+                    <p:selectOneMenu
+                      id="supervisor"
+                      value="#{employee.supervisor}"
+                    >
+                      <f:converter converterId="employeeConverter" />
+                      <f:selectItem itemLabel="--" noSelectItem="true" />
+                      <f:selectItems value="#{employeeController.employees}" />
+                    </p:selectOneMenu>
+                    <h:message for="supervisor" errorClass="error" />
+                  </f:facet>
+                </p:cellEditor>
+              </p:column>
+              <p:column style="width: 3rem">
+                <p:rowEditor
+                  editTitle="#{msgs.editRowTitle}"
+                  cancelTitle="#{msgs.cancelEditTitle}"
+                  saveTitle="#{msgs.saveRowTitle}"
+                  rendered="#{!employee.empDeactivated}"
+                />
+              </p:column>
+              <p:column style="width: 3rem">
+                <p:commandButton
+                  type="submit"
+                  rendered="#{!employee.empDeactivated}"
+                  action="#{employeeController.deactivateEmployee(employee)}"
+                  styleClass="rounded-button ui-button-danger"
+                  ajax="false"
+                  icon="pi pi-user-minus"
+                  disabled="#{employee.empType.equals('Admin')}"
+                  title="#{msgs.deactivateEmployeeTitle}"
+                />
+                <p:commandButton
+                  type="submit"
+                  rendered="#{employee.empDeactivated}"
+                  action="#{employeeController.activateEmployee(employee)}"
+                  styleClass="rounded-button ui-
+								button-info"
+                  ajax="false"
+                  icon="pi pi-user-plus"
+                  title="#{msgs.activateEmployeeTitle}"
+                />
+              </p:column>
+            </p:dataTable>
+          </div>
+        </h:form>
+        <p:commandButton
+          value="#{msgs.addEmployeeButtonText}"
+          oncomplete="PF('dlg3').show()"
+          styleClass="pfUIButton"
+          icon="pi pi-external-link"
+          style="margin-top: 30px !important"
+        >
+          <p:ajax update="employeeDialogForm" resetValues="true" />
+        </p:commandButton>
+        <h:commandButton
+          value="#{msgs.backButtonText}"
+          styleClass="uiButton"
+          action="index?faces-redirect=true"
+          immediate="true"
+        />
+        <p:dialog
+          id="employeeDialogForm"
+          header="#{msgs.addEmployeeButtonText}"
+          widgetVar="dlg3"
+          minHeight="40"
+          width="600"
+          showEffect="fade"
+          modal="true"
+          fitViewport="true"
+        >
+          <h:form style="height: 100%">
+            <p:growl
+              id="growl"
+              showDetail="true"
+              redisplay="false"
+              life="3000"
+            />
+            <div
+              class="standardInputContainer"
+              style="margin-top: 20px !important"
+            >
+              <h:panelGroup class="ui-float-label">
+                <div class="labelWrapper">
+                  <p:outputLabel for="@next" value="#{msgs.nameLabel}" />
+                </div>
+                <p:inputText
+                  id="name"
+                  required="true"
+                  value="#{employeeController.employeeToAdd.empName}"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                />
+              </h:panelGroup>
+              <h:message for="name" errorClass="error" />
+            </div>
+            <ui:remove>
+              <div class="standardInputContainer">
+                <h:panelGroup class="ui-float-label">
+                  <div class="labelWrapper">
+                    <p:outputLabel
+                      for="@next"
+                      value="#{msgs.employeeNumberLabel}"
+                    />
+                  </div>
+                  <p:inputText
+                    id="empNumber"
+                    required="true"
+                    value="#{employeeController.employeeToAdd.empNumber}"
+                    requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                    converterMessage="#{msgs.empNumberConversionErrorMsg}"
+                    validator="#{employeeController.validateNewEmpNumber}"
+                  />
+                </h:panelGroup>
+                <h:message for="empNumber" errorClass="error" />
+              </div>
+            </ui:remove>
+            <div class="standardInputContainer" style="margin-bottom: 10px">
+              <h:panelGroup class="ui-float-label">
+                <div class="labelWrapper">
+                  <p:outputLabel for="@next" value="#{msgs.usernameLabel}" />
+                </div>
+                <p:inputText
+                  id="username"
+                  required="true"
+                  value="#{employeeController.employeeToAdd.username}"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                  validator="#{employeeController.validateNewUsername}"
+                />
+              </h:panelGroup>
+              <h:message for="username" errorClass="error" />
+            </div>
+            <div class="standardInputContainer" style="margin-bottom: 10px">
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel
+                    for="@next"
+                    value="#{msgs.employeeTypeLabel}"
+                  />
+                </div>
+                <p:selectOneMenu
+                  id="empType"
+                  value="#{employeeController.employeeToAdd.empType}"
+                  required="true"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                  validator="#{employeeController.validateFormEmpTypeField}"
+                  style="width: 300px"
+                >
+                  <f:selectItem
+                    itemLabel="--"
+                    noSelectItem="true"
+                    itemDisabled="true"
+                  />
+                  <f:selectItems value="#{employeeController.empTypes}" />
+                </p:selectOneMenu>
+              </h:panelGroup>
+              <h:message for="empType" errorClass="error" />
+            </div>
+            <div class="standardInputContainer" style="margin-bottom: 10px">
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel for="@next" value="#{msgs.payGradeLabel}" />
+                </div>
+                <p:selectOneMenu
+                  id="payGrade"
+                  value="#{employeeController.employeeToAdd.payGrade}"
+                  required="true"
+                  requiredMessage="#{msgs.requiredFieldErrorMsg}"
+                  validator="#{employeeController.validateFormPayGradeField}"
+                  style="width: 300px"
+                >
+                  <f:converter converterId="payGradeConverter" />
+                  <f:selectItem
+                    itemLabel="--"
+                    noSelectItem="true"
+                    itemDisabled="true"
+                  />
+                  <f:selectItems value="#{employeeController.payGrades}" />
+                </p:selectOneMenu>
+              </h:panelGroup>
+              <h:message for="payGrade" errorClass="error" />
+            </div>
+            <div class="standardInputContainer">
+              <h:panelGroup>
+                <div class="labelWrapper">
+                  <p:outputLabel for="@next" value="#{msgs.supervisorLabel}" />
+                </div>
+                <p:selectOneMenu
+                  id="supervisor"
+                  value="#{employeeController.employeeToAdd.supervisor}"
+                  style="width: 300px"
+                >
+                  <f:converter converterId="employeeConverter" />
+                  <f:selectItem
+                    itemLabel="--"
+                    noSelectItem="true"
+                    itemDisabled="true"
+                  />
+                  <f:selectItems value="#{employeeController.employees}" />
+                </p:selectOneMenu>
+              </h:panelGroup>
+              <h:message for="supervisor" errorClass="error" />
+            </div>
+            <p:commandButton
+              value="#{msgs.submitButtonText}"
+              action="#{employeeController.addNewEmployee}"
+              oncomplete="if (args &amp;&amp; !args.validationFailed) PF('dlg3').hide()"
+              styleClass="pfUIButton"
+              update="growl"
+            >
+              <f:ajax execute="@form" render="@form" />
+            </p:commandButton>
+          </h:form>
+        </p:dialog>
+      </h:panelGroup>
+    </ui:composition>
+  </body>
+</html>
